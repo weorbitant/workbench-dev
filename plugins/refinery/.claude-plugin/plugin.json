@@ -1,0 +1,11 @@
+{
+  "name": "refinery",
+  "description": "AI-powered roadmap refinement: analyze tickets, review sprints, extract user stories, search documentation, analyze designs, create ADRs, and communicate with your team. Supports Jira, Linear, GitHub Issues, Figma, Confluence, Notion, Miro, Slack, and more via adapters.",
+  "version": "0.1.0",
+  "author": {
+    "name": "aldorea",
+    "url": "https://github.com/aldorea"
+  },
+  "repository": "https://github.com/aldorea/workbench-dev",
+  "license": "MIT"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "creating-skills",
+  "description": "Guide for authoring Claude Code skills following Anthropic best practices. Covers skill structure, SKILL.md templates, testing, and distribution.",
+  "version": "0.1.0",
+  "author": {
+    "name": "aldorea",
+    "url": "https://github.com/aldorea"
+  },
+  "repository": "https://github.com/aldorea/workbench-dev",
+  "license": "MIT"
+}

@@ -1,0 +1,62 @@
+# ops-suite configuration
+# Copy this file to config.yaml and fill in your values.
+
+# Which technologies you use (determines which adapters are loaded)
+orchestrator: kubernetes          # kubernetes | docker-compose | ecs | none
+message_broker: rabbitmq          # rabbitmq | azure-service-bus | sqs | kafka | none
+database: postgresql              # postgresql | mysql | mongodb | none
+
+# Environment definitions
+environments:
+  dev:
+    context: ""                   # e.g. dev-cluster (kubectl context)
+    namespaces:
+      apps: ""                    # e.g. my-apps
+      infra: ""                   # e.g. shared-infra
+    services:
+      broker:
+        name: ""                  # e.g. my-rabbitmq
+        management_port: 15672
+        amqp_port: 5672
+        vhost: "/"
+        pod_pattern: ""           # e.g. rabbitmq-* (for kubectl exec)
+      database:
+        name: ""                  # e.g. pgbouncer-dev
+        port: 6432
+        default_db: ""            # e.g. myapp_dev
+  prod:
+    context: ""
+    namespaces:
+      apps: ""
+      infra: ""
+    services:
+      broker:
+        name: ""
+        management_port: 15672
+        amqp_port: 5672
+        vhost: "/"
+        pod_pattern: ""
+      database:
+        name: ""
+        port: 6432
+        default_db: ""
+
+# Deployment configuration
+deploy:
+  ci_provider: github-actions     # github-actions | gitlab-ci | none
+  image_tag_source: run-id        # run-id | commit-sha | tag
+  migration_tool: mikro-orm       # mikro-orm | typeorm | knex | flyway | none
+  migration_command: ""           # e.g. npm run migrations:up
+  local_ports:
+    dev: 16432                    # local port for dev DB port-forward
+    prod: 16433                   # local port for prod DB port-forward
+
+# Service registry (for port-forward)
+# Add your services here. Each entry maps a friendly name to its k8s details.
+service_registry: {}
+  # example:
+  # my-api:
+  #   namespace: apps
+  #   service: svc/my-api
+  #   port: 8000
+  #   verify: "curl -s -o /dev/null -w '%{http_code}' http://localhost:{port}/health"

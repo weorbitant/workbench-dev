@@ -1,0 +1,87 @@
+# refinery configuration
+# Copy this file to config.yaml and fill in your values.
+
+# Issue tracker
+issue_tracker: jira               # jira | linear | github-issues
+jira:
+  cloud_id: ""                    # e.g. myorg.atlassian.net
+  default_project: ""             # e.g. DEVPT
+  story_points_field: ""          # e.g. customfield_10031
+  default_bug_epic: ""            # e.g. DEVPT-25
+
+linear:
+  team_id: ""
+
+# Design tool
+design_tool: figma                # figma | penpot | none
+
+# Documentation sources
+docs_sources:
+  - type: confluence              # confluence | notion | none
+    cloud_id: ""                  # e.g. myorg.atlassian.net
+  - type: notion
+
+# Board tool (for extracting user stories)
+board_tool: miro                  # miro | excalidraw | none
+board_config:
+  default_parent_page: ""         # e.g. Notion page ID for publishing US
+  available_roles: []             # e.g. [asesor, técnico, coordinador]
+
+# Sprint review
+sprint_review:
+  oversized_threshold: 5
+  systemic_threshold: 0.5
+  bug_alert_threshold: 0.4
+  vague_terms_es:
+    - "debería"
+    - "quizás"
+    - "posiblemente"
+    - "varios"
+    - "algunos"
+    - "etc."
+    - "por definir"
+    - "TBD"
+    - "en general"
+    - "eventualmente"
+    - "se podría"
+    - "a futuro"
+  vague_terms_en:
+    - "should"
+    - "maybe"
+    - "possibly"
+    - "various"
+    - "some"
+    - "etc."
+    - "TBD"
+    - "in general"
+    - "eventually"
+    - "could be"
+    - "as needed"
+    - "appropriate"
+
+# Communication
+communication:
+  tool: slack                     # slack | teams | discord | none
+  channels: {}
+
+# Ticket analysis
+ticket_analysis:
+  ui_keywords:
+    - "pantalla"
+    - "diseño"
+    - "formulario"
+    - "botón"
+    - "vista"
+    - "UI"
+    - "interfaz"
+    - "modal"
+    - "dropdown"
+    - "tabla"
+    - "listado"
+    - "dashboard"
+    - "layout"
+    - "screen"
+    - "form"
+    - "button"
+    - "view"
+    - "interface"

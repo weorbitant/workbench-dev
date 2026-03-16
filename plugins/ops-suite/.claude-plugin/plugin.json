@@ -1,0 +1,11 @@
+{
+  "name": "ops-suite",
+  "description": "Technology-agnostic infrastructure operations: service status, logs, deployments, database queries, and message queue management. Supports Kubernetes, Docker Compose, ECS, RabbitMQ, Azure Service Bus, PostgreSQL, MySQL, and more via adapters.",
+  "version": "0.1.0",
+  "author": {
+    "name": "aldorea",
+    "url": "https://github.com/aldorea"
+  },
+  "repository": "https://github.com/aldorea/workbench-dev",
+  "license": "MIT"
+}
