@@ -1,22 +1,27 @@
 {
-  "owner": "aldorea",
-  "description": "Developer toolkit: infrastructure operations, roadmap refinement, and skill authoring for Claude Code",
+  "name": "workbench-dev",
+  "owner": {
+    "name": "aldorea"
+  },
+  "metadata": {
+    "description": "Developer toolkit: infrastructure operations, roadmap refinement, and skill authoring for Claude Code"
+  },
   "plugins": [
     {
       "name": "ops-suite",
-      "source": "file:./plugins/ops-suite",
+      "source": "./plugins/ops-suite",
       "description": "Technology-agnostic infrastructure operations: service status, logs, deployments, database queries, and message queue management",
       "version": "0.1.0"
     },
     {
       "name": "refinery",
-      "source": "file:./plugins/refinery",
+      "source": "./plugins/refinery",
       "description": "AI-powered roadmap refinement: ticket analysis, sprint review, design analysis, documentation search, and team communication",
       "version": "0.1.0"
     },
     {
       "name": "creating-skills",
-      "source": "file:./plugins/creating-skills",
+      "source": "./plugins/creating-skills",
       "description": "Guide for authoring Claude Code skills following Anthropic best practices",
       "version": "0.1.0"
     }
