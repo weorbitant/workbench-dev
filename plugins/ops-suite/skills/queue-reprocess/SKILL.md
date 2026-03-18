@@ -24,7 +24,7 @@ Extract:
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/queue-reprocess/adapters/{message_broker}.md`.
+Read the adapter file at `adapters/{message_broker}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the message broker `{message_broker}` is not yet supported and stop.
 
 ## Step 2 — Determine target environment

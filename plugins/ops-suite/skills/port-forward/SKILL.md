@@ -23,7 +23,7 @@ Extract:
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/port-forward/adapters/{orchestrator}.md`.
+Read the adapter file at `adapters/{orchestrator}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the orchestrator `{orchestrator}` is not yet supported and stop.
 
 ## Step 2 — Determine target environment and service

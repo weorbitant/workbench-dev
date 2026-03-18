@@ -21,7 +21,7 @@ Extract:
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/service-logs/adapters/{orchestrator}.md`.
+Read the adapter file at `adapters/{orchestrator}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the orchestrator `{orchestrator}` is not yet supported and stop.
 
 ## Step 2 — Determine target
@@ -98,5 +98,6 @@ Based on the error patterns found, suggest specific next steps:
   ```
 - If errors include connection failures or timeouts:
   ```
-  → Run `/ops-suite:service-status {service} {env_name}` to check dependencies.
+  Use ops-suite:service-status with arguments: {service} {env_name}.
+  Use session state from /tmp/ops-suite-session/ — do not re-ask for environment.
   ```

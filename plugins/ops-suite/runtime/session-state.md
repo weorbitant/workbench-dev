@@ -10,7 +10,7 @@ Skills share state through files in `/tmp/ops-suite-session/`.
 | `env.json` | Selected environment + resolved config | Any skill that selects env | All skills | Planned |
 | `credentials.json` | Retrieved credentials (DB, broker) | Any skill that fetches creds | All DB/broker skills | Planned |
 | `port-forwards.json` | Active port-forwards `{service: {pid, localPort}}` | Any skill that creates one | All skills | Planned |
-| `last-triage.json` | Last queue-triage results | queue-triage | queue-reprocess | Planned |
+| `last-triage.json` | Last queue-triage results | queue-triage | queue-reprocess | Partial |
 
 ## Lifecycle
 

@@ -22,11 +22,11 @@ Extract:
 - `environments` — connection details
 - `deploy.local_ports` — local ports for database connections
 
-Also read the reference at `${CLAUDE_PLUGIN_ROOT}/skills/db-query/references/query-examples.md` for common query patterns.
+Also read the reference at `references/query-examples.md` (in this skill's directory) for common query patterns.
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/db-query/adapters/{database}.md`.
+Read the adapter file at `adapters/{database}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the database `{database}` is not yet supported and stop.
 
 ## Step 2 — Determine target environment
@@ -64,7 +64,7 @@ If `$ARGUMENTS` contains raw SQL:
 ## Step 5 — Execute query
 
 Use the adapter's query execution command.
-The script at `${CLAUDE_PLUGIN_ROOT}/skills/db-query/scripts/query.js` can be used as a helper for PostgreSQL.
+The script at `scripts/query.js` (in this skill's directory) can be used as a helper for PostgreSQL.
 
 ## Step 6 — Format and present results
 

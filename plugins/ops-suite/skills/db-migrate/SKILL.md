@@ -24,11 +24,11 @@ Extract:
 - `orchestrator` — for port-forward commands
 - `environments` — connection details for each environment
 
-Also read the reference at `${CLAUDE_PLUGIN_ROOT}/skills/db-migrate/references/commands.md`.
+Also read the reference at `references/commands.md` (in this skill's directory).
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/db-migrate/adapters/{deploy.migration_tool}.md`.
+Read the adapter file at `adapters/{deploy.migration_tool}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the migration tool `{deploy.migration_tool}` is not yet supported and stop.
 
 ## Step 2 — Determine target environment

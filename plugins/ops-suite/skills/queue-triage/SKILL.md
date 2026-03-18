@@ -21,11 +21,11 @@ Extract:
 - `orchestrator` — for connecting to the broker
 - `environments` — connection details
 
-Also read the reference at `${CLAUDE_PLUGIN_ROOT}/skills/queue-triage/references/known-patterns.md` for common failure patterns.
+Also read the reference at `references/known-patterns.md` (in this skill's directory) for common failure patterns.
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/queue-triage/adapters/{message_broker}.md`.
+Read the adapter file at `adapters/{message_broker}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the message broker `{message_broker}` is not yet supported and stop.
 
 ## Step 2 — Determine target environment
@@ -74,7 +74,7 @@ Classify failures using the decision tree:
 
 Use the `analyze_messages.py` script for bulk analysis if there are many messages:
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/queue-triage/scripts/analyze_messages.py {messages_file}
+python3 scripts/analyze_messages.py {messages_file}
 ```
 
 ## Step 6 — Inspect consumer code (if accessible)

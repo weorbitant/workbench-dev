@@ -31,7 +31,7 @@ c.connect()
 
 ```bash
 DB_HOST=localhost DB_PORT={local_port} DB_NAME={database} DB_USER={db_user} DB_PASSWORD={db_password} \
-  node ${CLAUDE_PLUGIN_ROOT}/skills/db-query/scripts/query.js "{sql_query}"
+  node scripts/query.js "{sql_query}"
 ```
 
 ## Execute using psql (if available)

@@ -21,7 +21,7 @@ Extract:
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/service-status/adapters/{orchestrator}.md`.
+Read the adapter file at `adapters/{orchestrator}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the orchestrator `{orchestrator}` is not yet supported and stop.
 
 All technology-specific commands come from the adapter. Do not invent commands.
@@ -61,7 +61,9 @@ For each unhealthy service:
 3. Suggest next steps:
    - OOMKilled → suggest increasing memory limits
    - ImagePullBackOff → verify image tag exists
-   - CrashLoopBackOff → suggest checking logs with `service-logs` skill
+   - CrashLoopBackOff →
+     Use ops-suite:service-logs with arguments: {service} {env_name}.
+     Use session state from /tmp/ops-suite-session/ — do not re-ask for environment.
    - Pending → check node resources or scheduling constraints
 
 ## Step 6 — Remediation (if requested)
