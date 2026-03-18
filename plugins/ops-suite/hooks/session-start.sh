@@ -13,12 +13,17 @@ mkdir -p "${SESSION_DIR}"
 # Parse config.yaml → config.json (using node + js-yaml)
 config_file="${PLUGIN_ROOT}/config.yaml"
 if [ -f "$config_file" ]; then
-    node -e "
+    if node -e "
 const yaml = require('js-yaml');
 const fs = require('fs');
-const config = yaml.load(fs.readFileSync('${config_file}', 'utf8'));
-fs.writeFileSync('${SESSION_DIR}/config.json', JSON.stringify(config, null, 2));
-" 2>/dev/null || true
+const [,, configPath, sessionDir] = process.argv;
+const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
+fs.writeFileSync(sessionDir + '/config.json', JSON.stringify(config, null, 2));
+" -- "$config_file" "$SESSION_DIR" 2>&1; then
+        : # config cached successfully
+    else
+        echo "[ops-suite] Warning: could not cache config.yaml (is js-yaml installed? npm i -g js-yaml)" >&2
+    fi
 fi
 
 # --- Build skill catalog ---

@@ -52,7 +52,7 @@ The migration tool needs a database connection. This typically requires:
 
 1. **Port-forward** to the database using the orchestrator:
    ```
-   kubectl --context={env.context} port-forward svc/{env.services.database.name} {deploy.local_ports.{env_name}}:{env.services.database.port} -n {env.namespaces.infra} &
+   kubectl --context={env.context} port-forward svc/{env.services.database.name} {deploy.local_ports.{env_name}}:{env.services.database.port} -n {env.services.database.namespace || env.namespaces.infra} &
    ```
 
 2. **Credentials**: Use the adapter's credential retrieval command or ask the user.

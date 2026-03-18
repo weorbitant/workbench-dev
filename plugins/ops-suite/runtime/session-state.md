@@ -4,13 +4,13 @@ Skills share state through files in `/tmp/ops-suite-session/`.
 
 ## State files
 
-| File | Content | Written by | Read by |
-|------|---------|-----------|---------|
-| `config.json` | Parsed config.yaml as JSON | session-start hook | All skills |
-| `env.json` | Selected environment + resolved config | Any skill that selects env | All skills |
-| `credentials.json` | Retrieved credentials (DB, broker) | Any skill that fetches creds | All DB/broker skills |
-| `port-forwards.json` | Active port-forwards `{service: {pid, localPort}}` | Any skill that creates one | All skills |
-| `last-triage.json` | Last queue-triage results | queue-triage | queue-reprocess |
+| File | Content | Written by | Read by | Status |
+|------|---------|-----------|---------|--------|
+| `config.json` | Parsed config.yaml as JSON | session-start hook | All skills | Implemented |
+| `env.json` | Selected environment + resolved config | Any skill that selects env | All skills | Planned |
+| `credentials.json` | Retrieved credentials (DB, broker) | Any skill that fetches creds | All DB/broker skills | Planned |
+| `port-forwards.json` | Active port-forwards `{service: {pid, localPort}}` | Any skill that creates one | All skills | Planned |
+| `last-triage.json` | Last queue-triage results | queue-triage | queue-reprocess | Planned |
 
 ## Lifecycle
 

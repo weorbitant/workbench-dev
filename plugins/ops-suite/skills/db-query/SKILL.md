@@ -40,7 +40,7 @@ Check if a port-forward is already active on the expected local port (`deploy.lo
 If not active:
 1. Start a port-forward using the orchestrator:
    ```
-   kubectl --context={env.context} port-forward svc/{env.services.database.name} {deploy.local_ports.{env_name}}:{env.services.database.port} -n {env.namespaces.infra} &
+   kubectl --context={env.context} port-forward svc/{env.services.database.name} {deploy.local_ports.{env_name}}:{env.services.database.port} -n {env.services.database.namespace || env.namespaces.infra} &
    ```
 2. Verify the connection is working
 

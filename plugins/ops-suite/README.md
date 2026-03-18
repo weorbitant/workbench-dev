@@ -267,6 +267,20 @@ ops-suite/
 └── docs/                       ← workflows, plans, references
 ```
 
+## Troubleshooting
+
+**"config.json not cached" warning on session start**
+→ You need `js-yaml` installed: `npm i -g js-yaml`. Without it, skills still work (they read `config.yaml` directly) but lose the caching benefit.
+
+**Port-forward connects but queries fail with "connection refused"**
+→ Check the namespace. Some services (like PgBouncer) may run in the apps namespace, not infra. Set `namespace:` in your service config to override.
+
+**Destructive skills don't auto-invoke**
+→ By design. `deploy`, `db-migrate`, and `queue-reprocess` require explicit `/ops-suite:xxx` invocation. Read-only skills (status, logs, query) can auto-invoke.
+
+**"relation does not exist" or "column does not exist" errors**
+→ Migrations are pending. Run `/ops-suite:db-migrate {env}`.
+
 ## Roadmap
 
 See [docs/plans/2026-03-18-ops-suite-v2-skill-chaining.md](docs/plans/2026-03-18-ops-suite-v2-skill-chaining.md) for planned improvements:

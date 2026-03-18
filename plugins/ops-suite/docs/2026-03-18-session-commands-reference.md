@@ -1,5 +1,7 @@
 # Commands Reference — Session 2026-03-18
 
+> **Note:** This is a snapshot from a specific incident session on 2026-03-18, not a general reference. Pod names, credentials, and queue names are specific to that session. Use it as a template — replace values with your own.
+
 All commands executed during the `mp-service-obligations-api` dev incident triage and remediation session.
 
 ## Environment
