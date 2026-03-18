@@ -11,8 +11,10 @@ model: sonnet
 
 ## Step 0 — Load configuration
 
-Read `${CLAUDE_PLUGIN_ROOT}/config.yaml`.
-If it does not exist, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
+Check if `/tmp/ops-suite-session/config.json` exists:
+- If yes, read it (pre-parsed by session-start hook).
+- If no, read the plugin's `config.yaml`, parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
+If neither exists, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
 
 Extract:
 - `deploy.ci_provider` — determines which adapter to load
@@ -73,20 +75,19 @@ Proceed? (yes/no)
 Use the adapter's deploy command to trigger the deployment.
 Monitor the deployment progress using the adapter's status commands.
 
-## Step 7 — Verify deployment
+## Step 7 — Post-deploy verification
 
-After deployment completes:
-1. Check that the new version is running (use `service-status` adapter commands)
-2. Verify health checks pass
-3. Check for any immediate errors in logs (brief check)
+After deployment completes, run the following read-only checks automatically:
 
-## Step 8 — Check migrations (if applicable)
+1. Use ops-suite:service-status with arguments: {service} {env_name}.
+   Use session state from `/tmp/ops-suite-session/` — do not re-ask for environment.
+   - If unhealthy → report immediately
 
-If `deploy.migration_tool` is not "none":
-- Remind the user to run migrations if needed
-- Suggest using the `db-migrate` skill
+2. Use ops-suite:service-logs with arguments: {service} {env_name}.
+   Check for errors in last 5 minutes.
+   - If errors found → report but continue
 
-## Output format
+## Step 8 — Report and suggest next steps
 
 ```
 Deployment Summary:
@@ -99,5 +100,11 @@ Deployment Summary:
 Post-deploy checks:
   Service health: {ok/degraded}
   Error check:    {clean/errors found}
-  Migrations:     {not needed/pending/completed}
+```
+
+If `deploy.migration_tool` is not "none", add:
+
+```
+Next steps:
+  → Run `/ops-suite:db-migrate {env_name}` to check and apply pending migrations.
 ```

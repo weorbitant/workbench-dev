@@ -10,8 +10,10 @@ model: sonnet
 
 ## Step 0 — Load configuration
 
-Read `${CLAUDE_PLUGIN_ROOT}/config.yaml`.
-If it does not exist, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
+Check if `/tmp/ops-suite-session/config.json` exists:
+- If yes, read it (pre-parsed by session-start hook).
+- If no, read the plugin's `config.yaml`, parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
+If neither exists, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
 
 Extract:
 - `orchestrator` — determines which adapter to load
@@ -83,3 +85,18 @@ Pattern:
 Recommended Next Steps:
   - {action items based on findings}
 ```
+
+Based on the error patterns found, suggest specific next steps:
+
+- If errors include "does not exist", "column ... does not exist", "relation ... does not exist":
+  ```
+  → Run `/ops-suite:db-migrate {env_name}` to check and apply pending migrations.
+  ```
+- If errors include DLQ or message processing failures:
+  ```
+  → Run `/ops-suite:queue-triage {env_name}` to diagnose failed messages.
+  ```
+- If errors include connection failures or timeouts:
+  ```
+  → Run `/ops-suite:service-status {service} {env_name}` to check dependencies.
+  ```
