@@ -1,47 +1,38 @@
 # ops-suite
 
-Technology-agnostic infrastructure operations for Claude Code. Manage services, logs, databases, queues, deployments and migrations — all through natural language or slash commands.
+Run infrastructure operations from Claude Code — check services, read logs, query databases, manage queues, deploy and migrate — without leaving your terminal.
 
-## How it works
+## What problem does this solve?
 
-ops-suite is a Claude Code plugin with **9 skills** organized around operational concerns. Each skill is a markdown-driven workflow that the model follows step-by-step. Skills are **adapter-based**: the same skill works with Kubernetes, Docker Compose, or ECS — you just configure which one you use.
+When something breaks in production, you usually SSH into clusters, copy-paste kubectl commands, open RabbitMQ dashboards, connect to databases... all manually, across multiple terminals.
+
+ops-suite lets you do all of that by talking to Claude:
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    ops-suite                         │
-│                                                     │
-│  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  │
-│  │  Services   │  │  Databases  │  │   Queues   │  │
-│  │             │  │             │  │            │  │
-│  │ status      │  │ query       │  │ status     │  │
-│  │ logs        │  │ migrate     │  │ triage     │  │
-│  │ deploy      │  │ port-forward│  │ reprocess  │  │
-│  └─────────────┘  └─────────────┘  └────────────┘  │
-│                                                     │
-│  ┌─────────────────────────────────────────────────┐ │
-│  │              Adapters                           │ │
-│  │  kubernetes · docker-compose · ecs              │ │
-│  │  postgresql · mysql · mongodb                   │ │
-│  │  rabbitmq · azure-service-bus · sqs · kafka     │ │
-│  │  github-actions · gitlab-ci                     │ │
-│  └─────────────────────────────────────────────────┘ │
-│                                                     │
-│  ┌──────────────────────┐                           │
-│  │  config.yaml         │  One file. All envs.      │
-│  └──────────────────────┘                           │
-└─────────────────────────────────────────────────────┘
+You:    "check if obligations-api is running in dev"
+Claude: runs service-status, shows 2/2 pods healthy, 0 restarts, 3m CPU, 86Mi memory
+
+You:    "any errors in the logs?"
+Claude: runs service-logs, finds 12 occurrences of "column updated_at does not exist"
+
+You:    "run migrations"
+Claude: runs db-migrate, lists 4 pending migrations, asks for confirmation, applies them
+
+You:    "check logs again"
+Claude: runs service-logs, confirms 0 errors after migration
+
+You:    "how are the queues?"
+Claude: runs queue-status, finds 3 DLQs with 390K messages
+
+You:    "triage and reprocess them"
+Claude: runs queue-triage → queue-reprocess, shovels messages back, verifies 0 errors
 ```
 
-## Installation
+That's a real session. Six operations, zero context switching.
 
-1. **Clone or symlink** the plugin into your Claude Code plugins directory:
+## Quick start
 
-```bash
-# If using workbench-dev
-git clone https://github.com/aldorea/workbench-dev.git
-```
-
-2. **Add to your Claude Code settings** (`.claude/settings.json`):
+**1. Add the plugin** to your Claude Code settings (`.claude/settings.json`):
 
 ```json
 {
@@ -51,165 +42,235 @@ git clone https://github.com/aldorea/workbench-dev.git
 }
 ```
 
-3. **Create your config**:
+**2. Create your config:**
 
 ```bash
 cd /path/to/ops-suite
 cp config.example.yaml config.yaml
-# Edit config.yaml with your environments, namespaces, credentials, etc.
 ```
 
-4. **Restart Claude Code** — the session-start hook will display available skills.
-
-## Configuration
-
-`config.yaml` defines your infrastructure:
+**3. Fill in three things** in `config.yaml`:
 
 ```yaml
-# What technologies you use
-orchestrator: kubernetes        # kubernetes | docker-compose | ecs
-message_broker: rabbitmq        # rabbitmq | azure-service-bus | sqs | kafka
-database: postgresql            # postgresql | mysql | mongodb
+orchestrator: kubernetes          # what runs your services
+message_broker: rabbitmq          # what moves your messages
+database: postgresql              # what stores your data
+```
 
-# Your environments
+And your environments (at minimum, one):
+
+```yaml
 environments:
   dev:
-    context: "dev-cluster"
+    context: "dev"                # kubectl context name
     namespaces:
-      apps: "my-apps"
-      infra: "shared-infra"
+      apps: "my-namespace"       # where your services run
+      infra: "shared-infra"      # where infra services live (rabbitmq, etc.)
+```
+
+That's enough to start using `service-status`, `service-logs`, and `queue-status`. The other skills need a few more fields — see [Full configuration](#full-configuration) below.
+
+**4. Restart Claude Code.** You'll see the list of available skills.
+
+## What can you do?
+
+### Check services
+
+```
+/ops-suite:service-status my-api dev     → pods, restarts, CPU/memory, deployment state
+/ops-suite:service-logs my-api dev       → errors, classification, frequency, patterns
+```
+
+These are read-only — Claude can run them automatically when the context suggests it.
+
+### Work with databases
+
+```
+/ops-suite:db-query "latest 20 orders" dev   → translates to SQL, shows for confirmation, runs it
+/ops-suite:db-migrate dev                     → lists pending migrations, applies them
+/ops-suite:port-forward database dev          → opens a local tunnel to the cluster DB
+```
+
+You describe what you want in plain language. Claude translates it to SQL and asks before running.
+
+### Manage queues
+
+```
+/ops-suite:queue-status dev                              → lists all queues, consumers, DLQ counts
+/ops-suite:queue-triage my-api:client:persisted.dead_letter dev   → peeks messages, classifies failures
+/ops-suite:queue-reprocess my-api:client:persisted.dead_letter dev → shovels messages back or purges
+```
+
+Triage tells you *why* messages failed. Reprocess moves them back after the fix.
+
+### Deploy
+
+```
+/ops-suite:deploy 42 dev                 → deploys PR #42, verifies health, checks logs
+```
+
+After deploying, it automatically checks service health and logs. If migrations are needed, it tells you what to run next.
+
+## How skills connect
+
+Skills suggest each other based on what they find. Read-only skills chain automatically. Destructive skills (deploy, migrate, reprocess) show you what to run next — you decide when.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                                                          │
+│   service-status ──→ service-logs ──→ suggests next step │
+│                           │                              │
+│                     ┌─────┼─────┐                        │
+│                     ▼     ▼     ▼                        │
+│               DB errors  Queue  App                      │
+│                  │      errors  errors                   │
+│                  ▼        ▼                               │
+│       "→ Run db-migrate"  queue-status                   │
+│                             │                            │
+│                             ▼                            │
+│                       queue-triage                       │
+│                             │                            │
+│                             ▼                            │
+│                "→ Run queue-reprocess"                   │
+│                                                          │
+│   deploy ──→ service-status ──→ service-logs             │
+│                                      │                   │
+│                                      ▼                   │
+│                           "→ Run db-migrate"             │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+
+  ──→  = automatic (read-only skills)
+  "→"  = suggested (you invoke it)
+```
+
+## Safety
+
+| Skill | Type | Auto-invocable? | Why |
+|-------|------|-----------------|-----|
+| service-status | read-only | Yes | Just reading pod state |
+| service-logs | read-only | Yes | Just reading log output |
+| db-query | read-only | Yes | SELECT queries only (writes require confirmation) |
+| queue-status | read-only | Yes | Just listing queues |
+| port-forward | read-only | Yes | Just opening a tunnel |
+| **deploy** | destructive | **No** | Changes running code |
+| **db-migrate** | destructive | **No** | Changes database schema |
+| **queue-reprocess** | destructive | **No** | Moves messages between queues |
+
+Destructive skills always require you to type the `/ops-suite:xxx` command explicitly. They also ask for confirmation before acting.
+
+## Full configuration
+
+`config.yaml` has three sections. You only need to fill in what you use.
+
+<details>
+<summary><strong>Infrastructure (required)</strong></summary>
+
+```yaml
+orchestrator: kubernetes          # kubernetes | docker-compose | ecs
+message_broker: rabbitmq          # rabbitmq | azure-service-bus | sqs | kafka | none
+database: postgresql              # postgresql | mysql | mongodb | none
+```
+
+Set to `none` if you don't use queues or databases.
+</details>
+
+<details>
+<summary><strong>Environments (required, at least one)</strong></summary>
+
+```yaml
+environments:
+  dev:
+    context: "dev"                        # kubectl context / docker-compose project
+    namespaces:
+      apps: "my-namespace"                # where your app pods run
+      infra: "shared-infra"               # where infra services run
     services:
       broker:
-        name: "rabbitmq"
-        namespace: "shared-infra"    # override if different from infra
+        name: "rabbitmq"                  # service/pod name
+        namespace: "shared-infra"         # override if different from infra
+        management_port: 15672
+        amqp_port: 5672
         vhost: "my_vhost"
-        pod_pattern: "rabbitmq-*"
+        pod_pattern: "rabbitmq-*"         # for kubectl exec
       database:
         name: "pgbouncer"
-        namespace: "my-apps"         # override if different from infra
+        namespace: "my-namespace"         # override if different from infra
         port: 6432
         default_db: "my-service-dev"
   prod:
-    # same structure...
+    # same structure, different values
+```
+</details>
 
-# Deploy settings
+<details>
+<summary><strong>Deploy settings (only if using deploy/migrate skills)</strong></summary>
+
+```yaml
 deploy:
-  ci_provider: github-actions
-  migration_tool: mikro-orm
+  ci_provider: github-actions             # github-actions | gitlab-ci
+  image_tag_source: run-id                # run-id | commit-sha | tag
+  migration_tool: mikro-orm               # mikro-orm | typeorm | knex | none
   migration_command: "npm run migrations:up"
   local_ports:
-    dev: 16432
-    prod: 16433
+    dev: 16432                            # local port for dev DB tunnel
+    prod: 16433                           # local port for prod DB tunnel
 ```
+</details>
 
-## Skills
+## Adapters
 
-| Skill | What it does | Invoke with |
-|-------|-------------|-------------|
-| **service-status** | Pod health, restarts, CPU/memory, deployment state | `/ops-suite:service-status [service] [env]` |
-| **service-logs** | Error search, classification, frequency analysis | `/ops-suite:service-logs [service] [env]` |
-| **db-query** | Read-only SQL queries with port-forward management | `/ops-suite:db-query [description] [env]` |
-| **db-migrate** | List pending, apply, verify database migrations | `/ops-suite:db-migrate [env]` |
-| **port-forward** | Establish local tunnels to cluster services | `/ops-suite:port-forward [service] [env]` |
-| **queue-status** | List queues, consumers, DLQ counts | `/ops-suite:queue-status [env]` |
-| **queue-triage** | Diagnose DLQ failures: peek messages, classify errors, find root cause | `/ops-suite:queue-triage [queue] [env]` |
-| **queue-reprocess** | Move DLQ messages back via shovel, or purge | `/ops-suite:queue-reprocess [queue] [env]` |
-| **deploy** | Deploy merged PRs: find artifact, trigger deploy, verify | `/ops-suite:deploy [PR-number] [env]` |
+ops-suite is technology-agnostic. Each skill loads an **adapter** based on your config. The adapter contains the actual commands (kubectl, docker, rabbitmqctl, etc.).
 
-## Skill flow
+To add support for a new technology:
 
-Skills are designed to chain naturally. Here's how they connect:
+1. Create `skills/<skill>/adapters/<technology>.md` (use an existing adapter as template)
+2. Set the corresponding config value (e.g., `orchestrator: ecs`)
+3. The skill will load your adapter automatically
 
-```mermaid
-graph TD
-    A[Something is wrong] --> B[service-status]
-    B -->|unhealthy pods| C[service-logs]
-    B -->|healthy pods| C
-    C -->|DB errors| D[db-migrate]
-    C -->|queue errors| E[queue-status]
-    D --> C2[service-logs ✓ verify fix]
-    E -->|DLQs with messages| F[queue-triage]
-    F -->|root cause fixed| G[queue-reprocess]
-    F -->|needs DB check| H[db-query]
-    F -->|consumer down| B
+Currently supported:
 
-    I[Deploy a change] --> J[deploy]
-    J --> D2[db-migrate]
-    D2 --> B2[service-status ✓ verify health]
-    B2 --> C3[service-logs ✓ check errors]
-    C3 --> E2[queue-status ✓ check DLQs]
+| Category | Adapters |
+|----------|----------|
+| Orchestrator | kubernetes, docker-compose, ecs |
+| Database | postgresql (mysql and mongodb planned) |
+| Message broker | rabbitmq (azure-service-bus planned) |
+| CI/CD | github-actions, gitlab-ci |
+| Migration tool | mikro-orm, typeorm |
 
-    style A fill:#ff6b6b,color:#fff
-    style I fill:#4ecdc4,color:#fff
-```
+## Workflows
+
+See [docs/workflows.md](docs/workflows.md) for step-by-step recipes for common scenarios:
+
+- Incident triage (something is broken)
+- Deploy and verify
+- DLQ cleanup
+- Database investigation
+- Pre-deploy check
+- Cross-environment comparison
+- Post-incident recovery
 
 ## Project structure
 
 ```
 ops-suite/
-├── .claude-plugin/
-│   └── plugin.json             # Plugin metadata
-├── hooks/
-│   ├── hooks.json              # SessionStart hook config
-│   └── session-start.sh        # Builds skill catalog on session start
-├── commands/                    # Slash command triggers (/ops-suite:xxx)
-│   ├── service-status.md
-│   ├── service-logs.md
-│   ├── db-query.md
-│   ├── db-migrate.md
-│   ├── port-forward.md
-│   ├── queue-status.md
-│   ├── queue-triage.md
-│   ├── queue-reprocess.md
-│   └── deploy.md
-├── skills/                      # Skill definitions (the actual logic)
-│   ├── service-status/
-│   │   ├── SKILL.md
-│   │   └── adapters/
-│   │       ├── kubernetes.md
-│   │       ├── docker-compose.md
-│   │       └── ecs.md
-│   ├── service-logs/
-│   │   ├── SKILL.md
-│   │   └── adapters/...
-│   ├── db-query/
-│   │   ├── SKILL.md
-│   │   ├── adapters/postgresql.md
-│   │   ├── references/query-examples.md
-│   │   └── scripts/query.js
-│   ├── db-migrate/
-│   │   ├── SKILL.md
-│   │   ├── adapters/mikro-orm.md
-│   │   └── references/commands.md
-│   ├── queue-triage/
-│   │   ├── SKILL.md
-│   │   ├── adapters/rabbitmq.md
-│   │   ├── references/known-patterns.md
-│   │   └── scripts/analyze_messages.py
-│   └── ...
-├── docs/
-│   ├── workflows.md             # Real-world workflow recipes
-│   └── plans/                   # Improvement plans
-├── config.example.yaml          # Template config
-└── config.yaml                  # Your config (gitignored)
+├── config.example.yaml        ← copy to config.yaml and fill in
+├── commands/                   ← slash command triggers (/ops-suite:xxx)
+├── skills/                     ← skill logic (one folder per skill)
+│   └── <skill>/
+│       ├── SKILL.md            ← step-by-step workflow
+│       ├── adapters/           ← technology-specific commands
+│       ├── references/         ← decision trees, patterns
+│       └── scripts/            ← helper scripts
+├── runtime/                    ← shared conventions (chaining, safety)
+├── hooks/                      ← session-start hook
+└── docs/                       ← workflows, plans, references
 ```
 
-## Adding adapters
+## Roadmap
 
-To support a new technology, create an adapter file in the relevant skill's `adapters/` directory. For example, to add MongoDB support for db-query:
+See [docs/plans/2026-03-18-ops-suite-v2-skill-chaining.md](docs/plans/2026-03-18-ops-suite-v2-skill-chaining.md) for planned improvements:
 
-1. Create `skills/db-query/adapters/mongodb.md`
-2. Define the commands following the same structure as `postgresql.md`
-3. Set `database: mongodb` in your `config.yaml`
-
-The skill will automatically load your adapter.
-
-## Roadmap (v2)
-
-See [docs/plans/2026-03-18-ops-suite-v2-skill-chaining.md](docs/plans/2026-03-18-ops-suite-v2-skill-chaining.md) for the planned improvements:
-
-- **Skill chaining** — skills invoke each other automatically (e.g., deploy → migrate → verify)
-- **Environment safety gates** — dev auto-executes, prod always confirms
-- **Pipeline skills** — `deploy-full` and `incident-triage` as composite workflows
-- **Session state** — shared config, connections, and credentials across skills
-- **Auto-invocation** — model detects intent and invokes the right skill without `/` commands
+- Pipeline skills (`deploy-full`, `incident-triage`) as composite workflows
+- Auto-invocation — model detects intent without needing `/` commands
+- Session state improvements — credential caching, port-forward pooling
