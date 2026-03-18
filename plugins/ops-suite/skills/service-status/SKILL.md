@@ -10,8 +10,10 @@ model: haiku
 
 ## Step 0 — Load configuration
 
-Read `${CLAUDE_PLUGIN_ROOT}/config.yaml`.
-If it does not exist, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
+Check if `/tmp/ops-suite-session/config.json` exists:
+- If yes, read it (pre-parsed by session-start hook).
+- If no, read the plugin's `config.yaml`, parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
+If neither exists, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
 
 Extract:
 - `orchestrator` — determines which adapter to load
@@ -19,7 +21,7 @@ Extract:
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/service-status/adapters/{orchestrator}.md`.
+Read the adapter file at `adapters/{orchestrator}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the orchestrator `{orchestrator}` is not yet supported and stop.
 
 All technology-specific commands come from the adapter. Do not invent commands.
@@ -59,7 +61,9 @@ For each unhealthy service:
 3. Suggest next steps:
    - OOMKilled → suggest increasing memory limits
    - ImagePullBackOff → verify image tag exists
-   - CrashLoopBackOff → suggest checking logs with `service-logs` skill
+   - CrashLoopBackOff →
+     Use ops-suite:service-logs with arguments: {service} {env_name}.
+     Use session state from /tmp/ops-suite-session/ — do not re-ask for environment.
    - Pending → check node resources or scheduling constraints
 
 ## Step 6 — Remediation (if requested)

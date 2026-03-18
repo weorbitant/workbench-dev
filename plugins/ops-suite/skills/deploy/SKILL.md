@@ -1,7 +1,7 @@
 ---
 name: deploy
 description: Deploy a merged change to an environment. Verifies the change is merged, finds the build artifact, confirms with the user, triggers the deployment, and verifies the result.
-argument-hint: "[PR-number or ref]"
+argument-hint: "[PR-number or ref] [environment]"
 disable-model-invocation: true
 allowed-tools:
   - Bash
@@ -11,8 +11,10 @@ model: sonnet
 
 ## Step 0 — Load configuration
 
-Read `${CLAUDE_PLUGIN_ROOT}/config.yaml`.
-If it does not exist, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
+Check if `/tmp/ops-suite-session/config.json` exists:
+- If yes, read it (pre-parsed by session-start hook).
+- If no, read the plugin's `config.yaml`, parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
+If neither exists, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
 
 Extract:
 - `deploy.ci_provider` — determines which adapter to load
@@ -20,11 +22,11 @@ Extract:
 - `deploy.migration_tool` — whether migrations need to run
 - `environments` — available environments
 
-Also read the reference at `${CLAUDE_PLUGIN_ROOT}/skills/deploy/references/commands.md` for the step-by-step process.
+Also read the reference at `references/commands.md` (in this skill's directory) for the step-by-step process.
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/deploy/adapters/{deploy.ci_provider}.md`.
+Read the adapter file at `adapters/{deploy.ci_provider}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the CI provider `{deploy.ci_provider}` is not yet supported and stop.
 
 ## Step 2 — Identify the change to deploy
@@ -38,7 +40,14 @@ If `$ARGUMENTS` contains a commit SHA or branch ref:
 
 If nothing is provided, ask the user for a PR number or ref.
 
-## Step 3 — Find the build artifact
+## Step 3 — Determine target environment
+
+If `$ARGUMENTS` contains an environment name, use it.
+Otherwise, list available environments from config and ask the user.
+
+**IMPORTANT: Always recommend deploying to dev first before prod.**
+
+## Step 4 — Find the build artifact
 
 Using the adapter's commands and `deploy.image_tag_source`:
 - **run-id**: Find the CI run associated with the merge commit, extract the run ID
@@ -47,13 +56,13 @@ Using the adapter's commands and `deploy.image_tag_source`:
 
 Verify the build completed successfully before proceeding.
 
-## Step 4 — Check current state
+## Step 5 — Check current state
 
 Use the adapter to show:
 1. What is currently deployed in the target environment
 2. What will change (diff between current and new)
 
-## Step 5 — Confirm deployment
+## Step 6 — Confirm deployment
 
 **ALWAYS ask the user for explicit confirmation before deploying.**
 
@@ -68,25 +77,24 @@ Ready to deploy:
 Proceed? (yes/no)
 ```
 
-## Step 6 — Deploy
+## Step 7 — Deploy
 
 Use the adapter's deploy command to trigger the deployment.
 Monitor the deployment progress using the adapter's status commands.
 
-## Step 7 — Verify deployment
+## Step 8 — Post-deploy verification
 
-After deployment completes:
-1. Check that the new version is running (use `service-status` adapter commands)
-2. Verify health checks pass
-3. Check for any immediate errors in logs (brief check)
+After deployment completes, run the following read-only checks automatically:
 
-## Step 8 — Check migrations (if applicable)
+1. Use ops-suite:service-status with arguments: {service} {env_name}.
+   Use session state from `/tmp/ops-suite-session/` — do not re-ask for environment.
+   - If unhealthy → report immediately
 
-If `deploy.migration_tool` is not "none":
-- Remind the user to run migrations if needed
-- Suggest using the `db-migrate` skill
+2. Use ops-suite:service-logs with arguments: {service} {env_name}.
+   Check for errors in last 5 minutes.
+   - If errors found → report but continue
 
-## Output format
+## Step 9 — Report and suggest next steps
 
 ```
 Deployment Summary:
@@ -99,5 +107,11 @@ Deployment Summary:
 Post-deploy checks:
   Service health: {ok/degraded}
   Error check:    {clean/errors found}
-  Migrations:     {not needed/pending/completed}
+```
+
+If `deploy.migration_tool` is not "none", add:
+
+```
+Next steps:
+  → Run `/ops-suite:db-migrate {env_name}` to check and apply pending migrations.
 ```

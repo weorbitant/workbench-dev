@@ -10,8 +10,10 @@ model: haiku
 
 ## Step 0 — Load configuration
 
-Read `${CLAUDE_PLUGIN_ROOT}/config.yaml`.
-If it does not exist, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
+Check if `/tmp/ops-suite-session/config.json` exists:
+- If yes, read it (pre-parsed by session-start hook).
+- If no, read the plugin's `config.yaml`, parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
+If neither exists, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
 
 Extract:
 - `message_broker` — determines which adapter to load
@@ -20,7 +22,7 @@ Extract:
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/queue-status/adapters/{message_broker}.md`.
+Read the adapter file at `adapters/{message_broker}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the message broker `{message_broker}` is not yet supported and stop.
 
 ## Step 2 — Determine target environment
@@ -53,7 +55,7 @@ Flag the following conditions:
 
 | Condition | Severity | Action |
 |-----------|----------|--------|
-| DLQ with messages > 0 | Warning | Suggest running `queue-triage` |
+| DLQ with messages > 0 | Warning | Auto-chain to `queue-triage` (see below) |
 | Queue with 0 consumers | Warning | Check if consumer service is running |
 | Queue with growing message count | Warning | Consumer may be slow or stuck |
 | Queue in "down" or "stopped" state | Critical | Investigate immediately |
@@ -77,6 +79,11 @@ Queue Status:
 Summary:
   Total queues: {count}
   Queues with messages: {count}
-  DLQs with messages: {count} (suggest: queue-triage)
+  DLQs with messages: {count}
   Queues with 0 consumers: {count}
 ```
+
+If any DLQs have messages, automatically triage the first one:
+
+Use ops-suite:queue-triage with arguments: {dlq_name} {env_name}.
+Use session state from /tmp/ops-suite-session/ — do not re-ask for environment.

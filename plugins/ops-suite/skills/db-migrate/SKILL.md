@@ -12,8 +12,10 @@ model: haiku
 
 ## Step 0 — Load configuration
 
-Read `${CLAUDE_PLUGIN_ROOT}/config.yaml`.
-If it does not exist, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
+Check if `/tmp/ops-suite-session/config.json` exists:
+- If yes, read it (pre-parsed by session-start hook).
+- If no, read the plugin's `config.yaml`, parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
+If neither exists, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
 
 Extract:
 - `deploy.migration_tool` — determines which adapter to load
@@ -22,11 +24,11 @@ Extract:
 - `orchestrator` — for port-forward commands
 - `environments` — connection details for each environment
 
-Also read the reference at `${CLAUDE_PLUGIN_ROOT}/skills/db-migrate/references/commands.md`.
+Also read the reference at `references/commands.md` (in this skill's directory).
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/db-migrate/adapters/{deploy.migration_tool}.md`.
+Read the adapter file at `adapters/{deploy.migration_tool}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the migration tool `{deploy.migration_tool}` is not yet supported and stop.
 
 ## Step 2 — Determine target environment
@@ -50,7 +52,7 @@ The migration tool needs a database connection. This typically requires:
 
 1. **Port-forward** to the database using the orchestrator:
    ```
-   kubectl --context={env.context} port-forward svc/{env.services.database.name} {deploy.local_ports.{env_name}}:{env.services.database.port} -n {env.namespaces.infra} &
+   kubectl --context={env.context} port-forward svc/{env.services.database.name} {deploy.local_ports.{env_name}}:{env.services.database.port} -n {env.services.database.namespace || env.namespaces.infra} &
    ```
 
 2. **Credentials**: Use the adapter's credential retrieval command or ask the user.

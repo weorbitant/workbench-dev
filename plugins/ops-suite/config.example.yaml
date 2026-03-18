@@ -16,12 +16,14 @@ environments:
     services:
       broker:
         name: ""                  # e.g. my-rabbitmq
+        namespace: ""             # override if not in infra namespace (optional)
         management_port: 15672
         amqp_port: 5672
         vhost: "/"
         pod_pattern: ""           # e.g. rabbitmq-* (for kubectl exec)
       database:
         name: ""                  # e.g. pgbouncer-dev
+        namespace: ""             # override if not in infra namespace (optional)
         port: 6432
         default_db: ""            # e.g. myapp_dev
   prod:
@@ -32,12 +34,14 @@ environments:
     services:
       broker:
         name: ""
+        namespace: ""             # override if not in infra namespace (optional)
         management_port: 15672
         amqp_port: 5672
         vhost: "/"
         pod_pattern: ""
       database:
         name: ""
+        namespace: ""             # override if not in infra namespace (optional)
         port: 6432
         default_db: ""
 

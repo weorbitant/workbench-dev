@@ -10,8 +10,10 @@ model: haiku
 
 ## Step 0 — Load configuration
 
-Read `${CLAUDE_PLUGIN_ROOT}/config.yaml`.
-If it does not exist, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
+Check if `/tmp/ops-suite-session/config.json` exists:
+- If yes, read it (pre-parsed by session-start hook).
+- If no, read the plugin's `config.yaml`, parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
+If neither exists, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
 
 Extract:
 - `orchestrator` — determines which adapter to load
@@ -21,7 +23,7 @@ Extract:
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/port-forward/adapters/{orchestrator}.md`.
+Read the adapter file at `adapters/{orchestrator}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the orchestrator `{orchestrator}` is not yet supported and stop.
 
 ## Step 2 — Determine target environment and service

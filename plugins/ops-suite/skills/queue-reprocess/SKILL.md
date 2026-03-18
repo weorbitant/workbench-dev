@@ -12,8 +12,10 @@ model: haiku
 
 ## Step 0 — Load configuration
 
-Read `${CLAUDE_PLUGIN_ROOT}/config.yaml`.
-If it does not exist, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
+Check if `/tmp/ops-suite-session/config.json` exists:
+- If yes, read it (pre-parsed by session-start hook).
+- If no, read the plugin's `config.yaml`, parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
+If neither exists, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
 
 Extract:
 - `message_broker` — determines which adapter to load
@@ -22,7 +24,7 @@ Extract:
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/queue-reprocess/adapters/{message_broker}.md`.
+Read the adapter file at `adapters/{message_broker}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the message broker `{message_broker}` is not yet supported and stop.
 
 ## Step 2 — Determine target environment
@@ -30,13 +32,18 @@ If the adapter does not exist, tell the user that the message broker `{message_b
 If `$ARGUMENTS` contains an environment name, use it. Otherwise ask the user.
 Store the selected environment config as `env`.
 
-## Step 3 — Pre-flight: recommend triage first
+## Step 3 — Pre-flight: check triage
 
-**IMPORTANT:** Before reprocessing, always recommend that the user runs `queue-triage` first to understand why messages failed.
+Check `/tmp/ops-suite-session/last-triage.json`:
 
-Ask: "Have you triaged this DLQ? Reprocessing without fixing the root cause will likely send messages back to the DLQ. Continue anyway?"
+If it exists and is less than 10 minutes old for the same DLQ:
+- Skip triage, use cached results.
+- Show: "Using triage from {minutes} ago: {summary}"
 
-If the user has not triaged, suggest running `queue-triage` first and stop.
+If it does not exist or is stale:
+- Show: "This DLQ has not been triaged recently. Reprocessing without fixing the root cause will likely send messages back to the DLQ."
+- Suggest: `→ Run /ops-suite:queue-triage {dlq_name} {env_name} first.`
+- Ask: "Continue anyway? (yes/no)"
 
 ## Step 4 — Identify DLQ and target queue
 

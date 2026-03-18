@@ -11,19 +11,21 @@ model: sonnet
 
 ## Step 0 — Load configuration
 
-Read `${CLAUDE_PLUGIN_ROOT}/config.yaml`.
-If it does not exist, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
+Check if `/tmp/ops-suite-session/config.json` exists:
+- If yes, read it (pre-parsed by session-start hook).
+- If no, read the plugin's `config.yaml`, parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
+If neither exists, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
 
 Extract:
 - `message_broker` — determines which adapter to load
 - `orchestrator` — for connecting to the broker
 - `environments` — connection details
 
-Also read the reference at `${CLAUDE_PLUGIN_ROOT}/skills/queue-triage/references/known-patterns.md` for common failure patterns.
+Also read the reference at `references/known-patterns.md` (in this skill's directory) for common failure patterns.
 
 ## Step 1 — Load adapter
 
-Read the adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/queue-triage/adapters/{message_broker}.md`.
+Read the adapter file at `adapters/{message_broker}.md` (in this skill's directory).
 If the adapter does not exist, tell the user that the message broker `{message_broker}` is not yet supported and stop.
 
 ## Step 2 — Determine target environment
@@ -72,7 +74,7 @@ Classify failures using the decision tree:
 
 Use the `analyze_messages.py` script for bulk analysis if there are many messages:
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/queue-triage/scripts/analyze_messages.py {messages_file}
+python3 scripts/analyze_messages.py {messages_file}
 ```
 
 ## Step 6 — Inspect consumer code (if accessible)
@@ -84,18 +86,20 @@ If the codebase is available:
 
 ## Step 7 — Verify external state
 
-Based on the failure analysis:
-- **Database issues**: Check if the referenced entities exist in the database
-- **Service down**: Check if the consumer service is running (`service-status`)
-- **Schema mismatch**: Compare message format with consumer expectations
-- **Rate limiting**: Check if an external API is returning 429s
+Based on the failure analysis, use read-only skills to gather context automatically:
+
+- **Database issues**: Use ops-suite:db-query with arguments: {env_name}.
+  Formulate a query to check if the affected entity exists.
+- **Service down**: Use ops-suite:service-status with arguments: {consumer_service} {env_name}.
+- **Schema mismatch**: Compare message format with consumer DTO expectations.
+- **Rate limiting**: Check if an external API is returning 429s.
+
+Use session state from `/tmp/ops-suite-session/` — do not re-ask for environment.
 
 ## Step 8 — Check consumer logs
 
-Use `service-logs` patterns to find related errors:
-```
-kubectl --context={env.context} logs -l app={consumer_service} -n {env.namespaces.apps} --tail=200 | grep -i "error\|exception\|reject"
-```
+Use ops-suite:service-logs with arguments: {consumer_service} {env_name}.
+Focus on errors related to the DLQ entities. Use session state — do not re-ask for environment.
 
 ## Step 9 — Produce report
 
@@ -131,3 +135,20 @@ Recommendation:
 Reprocessable: {yes/no/partial}
   {explanation of whether messages can be safely reprocessed after fix}
 ```
+
+If messages are reprocessable, add:
+
+```
+Next steps:
+  → Run `/ops-suite:queue-reprocess {dlq_name} {env_name}` to move messages back to the main queue.
+```
+
+If the root cause is a missing migration, add:
+
+```
+Next steps:
+  → Run `/ops-suite:db-migrate {env_name}` to apply pending migrations.
+  → Then run `/ops-suite:queue-reprocess {dlq_name} {env_name}` to reprocess failed messages.
+```
+
+Save triage results to `/tmp/ops-suite-session/last-triage.json` for use by ops-suite:queue-reprocess.
