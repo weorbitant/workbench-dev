@@ -45,7 +45,14 @@ If nothing is provided, ask the user for a PR number or ref.
 If `$ARGUMENTS` contains an environment name, use it.
 Otherwise, list available environments from config and ask the user.
 
-**IMPORTANT: Always recommend deploying to dev first before prod.**
+**IMPORTANT: If the CI workflow auto-deploys to dev on merge (check the build run for a `deploy-dev` job),
+inform the user that dev was already deployed automatically. Then:**
+
+1. **Ask the user to confirm dev is healthy** before proceeding to prod.
+2. **Do NOT deploy to prod** until the user explicitly confirms dev is working.
+3. If the user asks to deploy directly to prod without verifying dev, warn them and ask for confirmation.
+
+**Never chain merge → prod deploy without explicit approval for each environment.**
 
 ## Step 4 — Find the build artifact
 
