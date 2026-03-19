@@ -87,6 +87,8 @@ kubectl --context={env.context} exec -n {env.namespaces.infra} {broker_pod} -- \
 
 ## Via Management API (if port-forwarded to {env.services.broker.management_port})
 
+To get credentials, use the secret specified in `env.services.broker.credentials_secret` (NOT other secrets that may exist for the same broker — they may have different passwords without vhost permissions).
+
 ### List queues
 ```bash
 curl -s -u {user}:{password} http://localhost:{management_port}/api/queues/{vhost_encoded} | jq '.[] | {name, messages, consumers, state}'

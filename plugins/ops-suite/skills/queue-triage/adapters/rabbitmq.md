@@ -31,6 +31,14 @@ First, port-forward to the management API:
 kubectl --context={env.context} port-forward -n {env.namespaces.infra} {broker_pod} {env.services.broker.management_port}:{env.services.broker.management_port} &
 ```
 
+To get credentials, check `env.services.broker.credentials_secret` in config.
+If defined, retrieve from the specified secret:
+```bash
+kubectl --context={env.context} get secret {env.services.broker.credentials_secret} -n {env.services.broker.credentials_namespace} -o jsonpath='{.data}' | ...
+```
+**WARNING**: There may be multiple secrets with different passwords (e.g., Helm secret vs definitions secret).
+Use the secret specified in `credentials_secret` — it contains the actual runtime credentials with vhost permissions.
+
 Then fetch messages (ackmode=ack_requeue_true preserves them):
 ```bash
 curl -s -u {user}:{password} \

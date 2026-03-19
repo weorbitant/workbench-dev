@@ -54,11 +54,22 @@ The migration tool needs a database connection. This typically requires:
    ```
    kubectl --context={env.context} port-forward svc/{env.services.database.name} {deploy.local_ports.{env_name}}:{env.services.database.port} -n {env.services.database.namespace || env.namespaces.infra} &
    ```
+   Note: Use `env.services.database.namespace` if defined — the database/pgbouncer may live in a
+   different namespace than `env.namespaces.infra`.
 
-2. **Credentials**: Use the adapter's credential retrieval command or ask the user.
+2. **Credentials**: First check if `env.services.database.credentials_from` is defined in config:
+   - If `pod_env:<VAR_NAME>`: retrieve from a running app pod:
+     ```
+     kubectl --context={env.context} exec {any_app_pod} -n {env.namespaces.apps} -- printenv <VAR_NAME>
+     ```
+   - Otherwise, use the adapter's "retrieve secret" command or ask the user.
    Never hardcode or display credentials in plain text.
 
 3. **Set environment variables** as required by the migration tool (from adapter).
+
+4. **Determine database name**: If `service_databases` is defined in config, use it to resolve
+   the correct database name for the target service and environment. Otherwise fall back to
+   `env.services.database.default_db`.
 
 ## Step 5 — Confirm migration
 
