@@ -33,7 +33,13 @@ If the adapter does not exist, tell the user that the message broker `{message_b
 If `$ARGUMENTS` contains an environment name, use it. Otherwise ask the user.
 Store the selected environment config as `env`.
 
-## Step 3 — Survey DLQs
+## Step 3 — Identify queue type and survey
+
+Determine whether the target queue is a DLQ or a main queue:
+- **DLQ indicators**: name contains `.dead_letter`, `.dlq`, or `.error`
+- **Main queue**: everything else
+
+### If target is a DLQ (or no specific queue given):
 
 Use the adapter's "list DLQs" command to find all dead letter queues with messages.
 If `$ARGUMENTS` contains a specific queue name, focus on that queue.
@@ -47,6 +53,17 @@ DLQs with messages:
 ```
 
 If there are multiple DLQs, ask the user which one to triage first.
+
+Then continue to Step 4.
+
+### If target is a main queue (e.g. 0 consumers, messages piling up):
+
+This is a **missing consumer** investigation. Skip Steps 4-5 and go directly to Step 6 (Inspect consumer code), focusing on:
+1. Is the consumer service running? (Use ops-suite:service-status)
+2. Does the code actually subscribe to this queue? (Step 6)
+3. Was the subscription recently removed? (Step 6b — git history)
+
+After completing the code inspection, skip to Step 9 to produce the report.
 
 ## Step 4 — Fetch sample messages
 
@@ -80,9 +97,23 @@ python3 scripts/analyze_messages.py {messages_file}
 ## Step 6 — Inspect consumer code (if accessible)
 
 If the codebase is available:
-1. Find the consumer handler for the affected queue
-2. Look for error handling patterns
-3. Check if the error matches a known code path
+
+1. **Find the subscription config**: Search for the queue name in config files (e.g. `grep -r "queue_name" src/config/`). Identify the subscription name mapped to this queue.
+2. **Verify subscribe() call exists**: Search for `subscribe('{subscription_name}'` in the codebase. Compare all subscriptions declared in config vs actual `subscribe()` calls — any mismatch means orphaned config.
+3. **Find the consumer handler**: Locate the subscriber class (typically in `application/amqp/`) and read its `onApplicationBootstrap()` method to see which subscriptions are actually registered.
+4. **Check error handling patterns**: Look for try/catch, reject, or nack logic in the handler.
+5. **Check if the error matches a known code path**: Cross-reference with the failure mode from Step 5.
+
+## Step 6b — Check git history for removed handlers
+
+If the consumer code is missing or the subscribe() call doesn't exist:
+
+1. **Check git log for the subscriber file**: `git log --all --oneline -- {subscriber_file_path}`
+2. **Look for deletion commits**: `git log --all --oneline --diff-filter=D -- {subscriber_directory}/`
+3. **Inspect the deletion commit**: `git show {commit_hash} -- {file_path}` to see what was removed
+4. **Identify root cause**: Was it an intentional removal (refactor) or accidental? Check the commit message and surrounding changes.
+
+This step is critical when the subscription exists in config but no code subscribes to it.
 
 ## Step 7 — Verify external state
 
