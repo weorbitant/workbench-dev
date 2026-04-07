@@ -107,7 +107,7 @@ To add support for a new technology, create a markdown file. No code changes nee
 
 ```bash
 # From the Claude Code marketplace
-/plugin marketplace add github:aldorea/workbench-dev
+/plugin marketplace add github:weorbitant/workbench-dev
 
 # Install what you need
 /plugin install ops-suite
