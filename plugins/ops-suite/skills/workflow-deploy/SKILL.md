@@ -32,7 +32,7 @@ Store answers as: `{ref}`, `{env_name}`, `{migrations}`, `{rollback}`.
 
 ## Phase B — Pre-flight (read-only, no confirmation needed)
 
-Load the CI adapter file at `../deploy/adapters/{deploy.ci_provider}.md` and extract:
+Load the CI adapter file at `${CLAUDE_PLUGIN_ROOT}/skills/deploy/adapters/{deploy.ci_provider}.md` and extract:
 - The commands to verify and trigger a deployment
 - The rollback command (`{ci_rollback_command}`) — used if a rollback plan is requested
 

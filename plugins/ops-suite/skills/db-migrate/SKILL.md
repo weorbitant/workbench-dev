@@ -51,18 +51,15 @@ Show the user:
 The migration tool needs a database connection. This typically requires:
 
 1. **Port-forward** to the database using the orchestrator:
-   ```
-   kubectl --context={env.context} port-forward svc/{env.services.database.name} {deploy.local_ports.{env_name}}:{env.services.database.port} -n {env.services.database.namespace || env.namespaces.infra} &
-   ```
-   Note: Use `env.services.database.namespace` if defined — the database/pgbouncer may live in a
-   different namespace than `env.namespaces.infra`.
+   Load `${CLAUDE_PLUGIN_ROOT}/skills/port-forward/adapters/{orchestrator}.md` and use its
+   "Port-forward a service (background)" command for `{env.services.database.name}`,
+   local port `{deploy.local_ports.{env_name}}`, remote port `{env.services.database.port}`.
+   Use `{env.services.database.namespace}` if defined, otherwise `{env.namespaces.infra}`.
 
 2. **Credentials**: First check if `env.services.database.credentials_from` is defined in config:
-   - If `pod_env:<VAR_NAME>`: retrieve from a running app pod:
-     ```
-     kubectl --context={env.context} exec {any_app_pod} -n {env.namespaces.apps} -- printenv <VAR_NAME>
-     ```
-   - Otherwise, use the adapter's "retrieve secret" command or ask the user.
+   - If `pod_env:<VAR_NAME>`: load `${CLAUDE_PLUGIN_ROOT}/skills/port-forward/adapters/{orchestrator}.md`
+     and use its "retrieve secret" command to read the variable from a running app pod.
+   - Otherwise, use the migration adapter's credential retrieval command or ask the user.
    Never hardcode or display credentials in plain text.
 
 3. **Set environment variables** as required by the migration tool (from adapter).

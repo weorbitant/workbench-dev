@@ -56,10 +56,20 @@ nc -z localhost {local_port} 2>/dev/null && echo "Connection OK" || echo "Connec
 curl -s -o /dev/null -w '%{http_code}' http://localhost:{local_port}/health
 ```
 
-## Retrieve secret (generic pattern)
+## Retrieve secret (from Kubernetes Secret)
 
 ```bash
 kubectl --context={env.context} get secret {secret_name} -n {namespace} -o jsonpath='{.data.{key}}' | base64 -d
+```
+
+## Retrieve environment variable from a running pod (pod_env pattern)
+
+Use when `credentials_from: pod_env:<VAR_NAME>` is set in config — reads the variable from a
+running app pod instead of a Kubernetes Secret:
+
+```bash
+kubectl --context={env.context} get pods -n {env.namespaces.apps} -l app={service} -o name | head -1
+kubectl --context={env.context} exec {pod} -n {env.namespaces.apps} -- printenv {VAR_NAME}
 ```
 
 ## List secrets in namespace
