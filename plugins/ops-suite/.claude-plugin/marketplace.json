@@ -9,7 +9,7 @@
     {
       "name": "ops-suite",
       "description": "Technology-agnostic infrastructure operations: service status, logs, deployments, database queries, and message queue management",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "./",
       "author": {
         "name": "aldorea",
