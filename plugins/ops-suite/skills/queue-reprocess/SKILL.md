@@ -1,6 +1,6 @@
 ---
 name: queue-reprocess
-description: Move failed messages from dead letter queues back to their main queue for reprocessing. Creates a shovel or uses the Management API to move messages. Always recommends triaging first.
+description: Move failed messages from dead letter queues back to their main queue for reprocessing. Creates a shovel or uses the Management API to move messages. Always recommends triaging first. TRIGGER when: user asks "reprocess DLQ", "move messages back", "retry failed messages", "shovel messages", "republish DLQ", "requeue failed", "process dead letters", "move DLQ to main queue". SKIP: diagnosing why messages failed (use queue-triage first); checking queue counts (use queue-status).
 argument-hint: "[queue-name] [environment]"
 disable-model-invocation: true
 allowed-tools:

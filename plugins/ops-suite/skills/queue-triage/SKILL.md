@@ -1,6 +1,6 @@
 ---
 name: queue-triage
-description: Diagnose why messages are failing in dead letter queues. Surveys DLQs, fetches sample messages, analyzes failure patterns, inspects consumer code, and produces a root cause report. Use when asked about "DLQ triage", "dead letter diagnosis", "failed messages", "message failures", "queue errors".
+description: Diagnose why messages are failing in dead letter queues. Surveys DLQs, fetches sample messages, analyzes failure patterns, inspects consumer code, and produces a root cause report. Use when asked about "DLQ triage", "dead letter diagnosis", "failed messages", "message failures", "queue errors". TRIGGER when: user asks "why are messages failing?", "triage DLQ", "dead letter queue has messages", "failed messages", "diagnose queue errors", "DLQ analysis", "what's wrong with the queue?". SKIP: moving messages back (use queue-reprocess); general queue counts (use queue-status).
 argument-hint: "[queue-name] [environment]"
 allowed-tools:
   - Bash

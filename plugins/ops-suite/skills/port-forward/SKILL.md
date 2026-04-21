@@ -1,6 +1,6 @@
 ---
 name: port-forward
-description: Establish local connections to cluster services like databases, brokers, and APIs. Use when asked about "port-forward", "connect to database", "local connection", "tunnel", "forward port", "access service locally".
+description: Establish local connections to cluster services like databases, brokers, and APIs. Use when asked about "port-forward", "connect to database", "local connection", "tunnel", "forward port", "access service locally". TRIGGER when: user asks "port-forward to X", "connect to database locally", "tunnel to service", "forward port", "access service locally", "open local connection to X". SKIP: checking service health (use service-status); running queries (use db-query).
 argument-hint: "[service] [environment]"
 allowed-tools:
   - Bash

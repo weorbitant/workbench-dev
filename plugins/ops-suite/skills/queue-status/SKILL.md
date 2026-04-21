@@ -1,6 +1,6 @@
 ---
 name: queue-status
-description: Check message queue status, list queues, monitor DLQ counts and consumers. Use when asked about "queues", "queue status", "DLQ", "dead letter", "consumers", "messages pending", "message broker", "rabbitmq", "queue health".
+description: Check message queue status, list queues, monitor DLQ counts and consumers. Use when asked about "queues", "queue status", "DLQ", "dead letter", "consumers", "messages pending", "message broker", "rabbitmq", "queue health". TRIGGER when: user asks "how are the queues?", "queue status", "any DLQ messages?", "check queues", "messages pending", "consumer count", "queue health", "rabbitmq status", "are there messages in the DLQ?". SKIP: diagnosing DLQ failures (use queue-triage); moving messages back (use queue-reprocess).
 argument-hint: "[service-name] [environment]"
 allowed-tools:
   - Bash
