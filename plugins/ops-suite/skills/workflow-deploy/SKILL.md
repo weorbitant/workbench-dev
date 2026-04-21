@@ -13,10 +13,13 @@ model: sonnet
 
 Interactive deployment workflow: collect all inputs upfront via intake form, then execute with explicit checkpoints before each destructive operation. Checkpoints apply to **all environments** (dev, staging, prod) — this workflow is always interactive.
 
+Note: `disable-model-invocation` is intentionally absent. Unlike the `deploy` skill (which is programmatic/chained only), this skill is designed to be auto-invoked by natural language triggers like "deploy PR #X". Every destructive operation is gated behind `AskUserQuestion`, so auto-invocation is safe.
+
 ## Phase A — Intake Form
 
 Load configuration from `/tmp/ops-suite-session/config.json` (or `config.yaml` if not cached).
 Extract `environments` list for question 2.
+Extract `{service}` from config (the primary service name — used in Phase C/D for health checks and logs).
 
 Ask these four questions one at a time using `AskUserQuestion`:
 
@@ -29,13 +32,18 @@ Store answers as: `{ref}`, `{env_name}`, `{migrations}`, `{rollback}`.
 
 ## Phase B — Pre-flight (read-only, no confirmation needed)
 
-Using the CI adapter from the deploy skill (`adapters/{deploy.ci_provider}.md`):
+Load the CI adapter file at `../deploy/adapters/{deploy.ci_provider}.md` and extract:
+- The commands to verify and trigger a deployment
+- The rollback command (`{ci_rollback_command}`) — used if a rollback plan is requested
+
+Then:
 
 1. Verify `{ref}` is merged and extract the image tag
 2. Get the currently deployed tag in `{env_name}` (what will change)
 3. If `{migrations}` is `auto-detect`: check for pending migrations using the db-migrate adapter
 4. If `{rollback}` is `yes`: generate rollback plan using `references/rollback-templates.md`
    — select the correct template based on whether migrations are included
+   — fill `{ci_rollback_command}` with the value extracted from the CI adapter above
 
 Display the deployment plan summary:
 
