@@ -55,7 +55,7 @@ Flag the following conditions:
 
 | Condition | Severity | Action |
 |-----------|----------|--------|
-| DLQ with messages > 0 | Warning | Auto-chain to `queue-triage` (see below) |
+| DLQ with messages > 0 | Warning | Suggest queue-triage (see Step 6) |
 | Queue with 0 consumers | Warning | Check if consumer service is running |
 | Queue with growing message count | Warning | Consumer may be slow or stuck |
 | Queue in "down" or "stopped" state | Critical | Investigate immediately |
@@ -83,7 +83,9 @@ Summary:
   Queues with 0 consumers: {count}
 ```
 
-If any DLQs have messages, automatically triage the first one:
+If any DLQs have messages, suggest next steps:
 
-Use ops-suite:queue-triage with arguments: {dlq_name} {env_name}.
-Use session state from /tmp/ops-suite-session/ — do not re-ask for environment.
+```
+Next steps:
+  → Run `/ops-suite:queue-triage {dlq_name} {env_name}` to diagnose why messages are failing.
+```

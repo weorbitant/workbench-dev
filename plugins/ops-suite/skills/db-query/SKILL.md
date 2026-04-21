@@ -38,11 +38,11 @@ If `$ARGUMENTS` contains an environment name, use it. Otherwise ask the user.
 Check if a port-forward is already active on the expected local port (`deploy.local_ports.{env_name}`).
 
 If not active:
-1. Start a port-forward using the orchestrator:
-   ```
-   kubectl --context={env.context} port-forward svc/{env.services.database.name} {deploy.local_ports.{env_name}}:{env.services.database.port} -n {env.services.database.namespace || env.namespaces.infra} &
-   ```
-2. Verify the connection is working
+1. Load `${CLAUDE_PLUGIN_ROOT}/skills/port-forward/adapters/{orchestrator}.md` and use its
+   "Port-forward a service (background)" command for `{env.services.database.name}`,
+   local port `{deploy.local_ports.{env_name}}`, remote port `{env.services.database.port}`,
+   namespace `{env.services.database.namespace}` if defined, otherwise `{env.namespaces.infra}`.
+2. Verify the connection using the adapter's connection check command.
 
 Retrieve or ask for credentials. Never hardcode credentials.
 

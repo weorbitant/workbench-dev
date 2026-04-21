@@ -98,11 +98,21 @@ python3 scripts/analyze_messages.py {messages_file}
 
 If the codebase is available:
 
-1. **Find the subscription config**: Search for the queue name in config files (e.g. `grep -r "queue_name" src/config/`). Identify the subscription name mapped to this queue.
-2. **Verify subscribe() call exists**: Search for `subscribe('{subscription_name}'` in the codebase. Compare all subscriptions declared in config vs actual `subscribe()` calls — any mismatch means orphaned config.
-3. **Find the consumer handler**: Locate the subscriber class (typically in `application/amqp/`) and read its `onApplicationBootstrap()` method to see which subscriptions are actually registered.
-4. **Check error handling patterns**: Look for try/catch, reject, or nack logic in the handler.
-5. **Check if the error matches a known code path**: Cross-reference with the failure mode from Step 5.
+1. **Find the subscription config**: Search for the queue name in config and source files:
+   ```bash
+   grep -r "{queue_name}" src/ --include="*.ts" --include="*.yaml" --include="*.json" -l
+   ```
+   Identify the subscription name or handler mapped to this queue.
+2. **Locate the consumer handler**: Search for the handler that processes this subscription:
+   ```bash
+   grep -r "{subscription_name}" src/ --include="*.ts" -l
+   ```
+3. **Check error handling**: Look for try/catch, reject, or nack logic in the handler.
+4. **Verify the handler is registered**: Check that the subscription is actually active at runtime (not only declared in config). Any mismatch between config and actual subscriptions means orphaned config.
+5. **Cross-reference with the failure mode from Step 5**.
+
+If the codebase uses a specific framework, load `references/consumer-patterns.md` for
+framework-specific search patterns (NestJS + RabbitMQ, Spring AMQP, Celery).
 
 ## Step 6b — Check git history for removed handlers
 
