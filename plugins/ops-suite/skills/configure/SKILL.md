@@ -48,42 +48,15 @@ Ask:
 
 Store the list as `{envs}`.
 
-### 2b — Kubernetes contexts (only if orchestrator = kubernetes)
+### 2b — Load orchestrator adapter
 
-Run silently:
-```bash
-kubectl config get-contexts -o name 2>/dev/null
-```
+Read `adapters/{orchestrator}.md` for all orchestrator-specific detection commands and questions. If the adapter does not exist, tell the user the orchestrator is not yet supported and skip environment-specific detection (ask manually).
 
-For **each** environment in `{envs}`, ask:
-> "Which kubectl context maps to **{env_name}**?"
-
-List detected contexts as options + "I'll type it manually".
-Store each as `{env.context}`.
-
-### 2c — Namespaces (only if orchestrator = kubernetes)
-
-For **each** environment, run silently:
-```bash
-kubectl get namespaces --context={env.context} -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null
-```
-
-Ask two questions per environment:
-
-1. > "**{env_name}**: Which namespace runs your application services?"
-   - List detected namespaces + "I'll type it manually"
-   - Store as `{env.ns_apps}`
-
-2. > "**{env_name}**: Which namespace runs shared infrastructure (broker, database proxy, etc.)?"
-   - Suggest `shared-infra` if present, otherwise list all + "Same as apps" + "I'll type it manually"
-   - Store as `{env.ns_infra}`
-
-### 2d — Local port-forward ports (only if orchestrator = kubernetes)
-
-For each environment ask:
-> "**{env_name}**: Local port for database port-forwarding?"
-- Suggest sequential defaults: dev=16432, staging=16433, prod=16434
-- Store as `{env.local_port}`
+Follow the adapter instructions for each environment to collect:
+- `{env.context}` or equivalent connection identifier
+- `{env.ns_apps}` / service scope (where app services run)
+- `{env.ns_infra}` / infra scope (where broker and DB run)
+- `{env.local_port}` (local port for DB port-forwarding)
 
 ---
 
