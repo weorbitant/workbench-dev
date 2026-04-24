@@ -1,6 +1,6 @@
 ---
 name: deploy
-description: Deploy a merged change to an environment. Verifies the change is merged, finds the build artifact, confirms with the user, triggers the deployment, and verifies the result. TRIGGER when: chained by workflow-deploy or another skill; user explicitly invokes /deploy with a specific PR number, commit SHA, or ref. SKIP: interactive guided deployments (use workflow-deploy instead — it wraps this skill with an intake form and checkpoints).
+description: Deploy a merged PR or commit to an environment. TRIGGER when: chained by workflow-deploy or another skill; user explicitly invokes /deploy with a PR number, commit SHA, or ref. SKIP: interactive guided deployments (use workflow-deploy).
 argument-hint: "[PR-number or ref] [environment]"
 disable-model-invocation: true
 allowed-tools:

@@ -1,6 +1,6 @@
 ---
 name: db-migrate
-description: Run database migrations on remote environments. Identifies pending migrations, connects to the target database, runs the migration command, and verifies the result. Use when asked about "run migrations", "apply migrations", "pending schema changes", "migration status", "update schema", "db migrate". TRIGGER when: user asks "run migrations", "apply migrations", "pending migrations", "migration status", "update schema", "schema migration", "check migrations", "are there pending migrations?". SKIP: querying data (use db-query); checking service health (use service-status).
+description: Run database migrations against remote environments. Use when asked about "migrations", "pending schema changes", "apply migrations", "migration status", "update schema". SKIP: querying data (use db-query); service health (use service-status).
 argument-hint: "[environment]"
 disable-model-invocation: true
 allowed-tools:

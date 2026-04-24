@@ -1,6 +1,6 @@
 ---
 name: db-query
-description: Execute read-only queries against databases. Connects to the target environment's database, runs SQL queries, and formats results. Use when asked about "query database", "db query", "SQL", "check data", "database lookup", "count records", "find rows". TRIGGER when: user asks "query X table", "count records", "find rows where", "SQL query", "check the data", "how many X?", "look up Y in the database", "run a query". SKIP: running migrations (use db-migrate); service health checks (use service-status).
+description: Execute read-only queries against databases in any environment. Use when asked about "SQL", "check data", "count records", "find rows", "query database", "how many X?", "look up Y". SKIP: running migrations (use db-migrate); service health (use service-status).
 argument-hint: "[query description] [environment]"
 allowed-tools:
   - Bash
