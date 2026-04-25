@@ -6,7 +6,7 @@ disable-model-invocation: true
 allowed-tools:
   - Bash
   - AskUserQuestion
-model: sonnet
+model: haiku
 ---
 
 ## Step 0 — Load configuration

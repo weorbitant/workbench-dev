@@ -30,6 +30,12 @@ Claude: runs queue-triage → queue-reprocess, shovels messages back, verifies 0
 
 That's a real session. Six operations, zero context switching.
 
+## Prerequisites
+
+- **Node.js** — required by the SessionStart hook to parse `config.yaml` into session cache
+- **`js-yaml`** — `npm install -g js-yaml` (used by the hook; without it skills still work but lose session caching)
+- **kubectl / AWS CLI / docker** — whichever matches your orchestrator
+
 ## Quick start
 
 **1. Add the plugin** to your Claude Code settings (`.claude/settings.json`):

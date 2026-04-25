@@ -6,7 +6,7 @@ allowed-tools:
   - Bash
   - Read
   - AskUserQuestion
-model: sonnet
+model: haiku
 ---
 
 ## Step 0 — Load configuration
