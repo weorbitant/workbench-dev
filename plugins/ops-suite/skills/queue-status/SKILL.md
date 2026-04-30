@@ -68,14 +68,53 @@ Present results in this format:
 Environment: {env_name}
 Broker:      {env.services.broker.name}
 Vhost:       {env.services.broker.vhost}
+```
 
-Queue Status:
+### If a service filter was provided:
+
+Show only queues matching that service:
+
+```
+Queue Status — {service_name}:
 | Queue Name              | Messages | Consumers | State   | Flags    |
 |-------------------------|----------|-----------|---------|----------|
 | {queue_name}            | {count}  | {count}   | running |          |
 | {queue_name}.dlq        | {count}  | 0         | running | DLQ MSG  |
 | {queue_name}            | {count}  | 0         | running | NO CONS  |
+```
 
+### If no service filter was provided:
+
+Show **all queues** grouped by service prefix (the part before the first `:`), sorted by total messages descending within each group. Show the full list — do not truncate.
+
+```
+Queue Status — All Services ({total_queue_count} queues):
+
+── {service_prefix} ──
+| Queue Name              | Messages | Consumers | State   | Flags    |
+|-------------------------|----------|-----------|---------|----------|
+| {queue_name}            | {count}  | {count}   | running |          |
+| {queue_name}.dlq        | {count}  | 0         | running | DLQ MSG  |
+
+── {service_prefix_2} ──
+| ...                     | ...      | ...       | ...     | ...      |
+```
+
+Then show a **Top DLQs across platform** section for DLQs with messages > 0, sorted descending:
+
+```
+Top DLQs (platform-wide):
+| DLQ Name                                    | Messages   | Flags    |
+|---------------------------------------------|------------|----------|
+| {dlq_name}                                  | {count}    | CRITICAL |
+| {dlq_name}                                  | {count}    | WARNING  |
+```
+
+Use CRITICAL (> 100k messages) and WARNING (1–100k messages).
+
+### Summary (always shown):
+
+```
 Summary:
   Total queues: {count}
   Queues with messages: {count}
