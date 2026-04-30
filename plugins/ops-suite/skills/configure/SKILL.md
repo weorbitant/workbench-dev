@@ -1,12 +1,10 @@
 ---
 name: configure
 description: Walks through full ops-suite setup: asks about all infrastructure components and writes config.yaml. Use when setting up ops-suite for the first time or when config.yaml is missing.
-argument-hint: ""
-allowed-tools:
-  - Bash
-  - AskUserQuestion
-  - Write
-model: sonnet
+allowed-tools: Bash AskUserQuestion Write
+metadata:
+  argument-hint: ""
+  model: sonnet
 ---
 
 ## Overview
