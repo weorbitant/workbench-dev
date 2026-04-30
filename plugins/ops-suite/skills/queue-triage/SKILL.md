@@ -1,12 +1,10 @@
 ---
 name: queue-triage
 description: Diagnose why messages are failing in dead letter queues and produce a root cause report. Use when asked about "DLQ triage", "dead letter diagnosis", "why are messages failing", "queue errors". SKIP: moving messages back (use queue-reprocess); general counts (use queue-status).
-argument-hint: "[queue-name] [environment]"
-allowed-tools:
-  - Bash
-  - Read
-  - AskUserQuestion
-model: sonnet
+allowed-tools: Bash Read AskUserQuestion
+metadata:
+  argument-hint: "[queue-name] [environment]"
+  model: sonnet
 ---
 
 ## Step 0 — Load configuration

@@ -1,12 +1,10 @@
 ---
 name: workflow-deploy
 description: Interactive deployment workflow with guided intake form and checkpoints at each destructive step. Use when the user wants to deploy a PR or commit with a step-by-step guided experience. TRIGGER when: user asks "deploy PR #X", "guided deploy", "walk me through deploying", "deploy workflow", "interactive deploy", "deploy with checks", "step by step deploy", "deploy to prod", "ship PR", "release PR #X". SKIP: non-interactive or chained deploys (use deploy directly).
-argument-hint: ""
-allowed-tools:
-  - Bash
-  - AskUserQuestion
-  - Read
-model: sonnet
+allowed-tools: Bash AskUserQuestion Read
+metadata:
+  argument-hint: ""
+  model: sonnet
 ---
 
 ## Overview
