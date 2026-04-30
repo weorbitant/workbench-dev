@@ -1,11 +1,10 @@
 ---
 name: service-status
 description: Check service/container status, health, events, and resource usage across environments. Use when asked about "pods", "service status", "check services", "crashloop", "restart", "container health", "service down", "unhealthy". TRIGGER when: user asks "is X running?", "check pods", "service down", "crashloop", "restart count", "container health", "deployment status", "how many pods?", "pod status". SKIP: log content analysis (use service-logs); database queries (use db-query); queue inspection (use queue-status).
-argument-hint: "[service-name] [environment]"
-allowed-tools:
-  - Bash
-  - AskUserQuestion
-model: haiku
+allowed-tools: Bash AskUserQuestion
+metadata:
+  argument-hint: "[service-name] [environment]"
+  model: haiku
 ---
 
 ## Step 0 — Load configuration

@@ -1,13 +1,11 @@
 ---
 name: db-migrate
 description: Run database migrations against remote environments. Use when asked about "migrations", "pending schema changes", "apply migrations", "migration status", "update schema". SKIP: querying data (use db-query); service health (use service-status).
-argument-hint: "[environment]"
-disable-model-invocation: true
-allowed-tools:
-  - Bash
-  - Read
-  - AskUserQuestion
-model: haiku
+allowed-tools: Bash Read AskUserQuestion
+metadata:
+  argument-hint: "[environment]"
+  model: haiku
+  disable-model-invocation: "true"
 ---
 
 ## Step 0 — Load configuration

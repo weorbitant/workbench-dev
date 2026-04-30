@@ -1,11 +1,10 @@
 ---
 name: service-logs
 description: Search and analyze logs from services and containers. Use when asked about "logs", "errors", "exceptions", "log search", "error messages", "stack trace", "application errors", "debug logs". TRIGGER when: user asks "any errors?", "check logs", "what's failing?", "show logs", "stack trace", "exceptions in X", "debug logs", "recent errors", "error messages". SKIP: pod health checks (use service-status); database queries (use db-query); queue failure analysis (use queue-triage).
-argument-hint: "[service-name] [environment]"
-allowed-tools:
-  - Bash
-  - AskUserQuestion
-model: haiku
+allowed-tools: Bash AskUserQuestion
+metadata:
+  argument-hint: "[service-name] [environment]"
+  model: haiku
 ---
 
 ## Step 0 — Load configuration

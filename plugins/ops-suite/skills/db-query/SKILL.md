@@ -1,12 +1,10 @@
 ---
 name: db-query
 description: Execute read-only queries against databases in any environment. Use when asked about "SQL", "check data", "count records", "find rows", "query database", "how many X?", "look up Y". SKIP: running migrations (use db-migrate); service health (use service-status).
-argument-hint: "[query description] [environment]"
-allowed-tools:
-  - Bash
-  - Read
-  - AskUserQuestion
-model: haiku
+allowed-tools: Bash Read AskUserQuestion
+metadata:
+  argument-hint: "[query description] [environment]"
+  model: haiku
 ---
 
 ## Step 0 — Load configuration
