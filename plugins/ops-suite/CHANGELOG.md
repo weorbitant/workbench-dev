@@ -6,6 +6,30 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.4.0] — 2026-04-30
+
+### Added
+
+- **`deploy-status` skill** — read-only deployment visibility across environments. Shows current deployed commit, author, timestamp, PR, and replicas per environment, plus drift detection between envs (in sync / behind / ahead / diverged).
+- **Orchestrator references** for deploy-status:
+  - `skills/deploy-status/references/kubernetes.md` — extracts image tag, replicas, and conditions from Deployments.
+- **CI references** for deploy-status:
+  - `skills/deploy-status/references/github-actions.md` — maps image tag (run-id / commit-sha / tag) to commit metadata, PR, and ahead/behind comparisons.
+
+### Fixed
+
+- **`queue-status` auto-triage loop** — previously only triaged the first DLQ with messages; now triages every DLQ with messages > 0. Bounded throughput: parallel auto-triage for 1–3 DLQs, interactive selection (top 3 / all / skip) when 4 or more are flagged.
+
+### Removed
+
+- **`queue-status/adapters/` folder** — broker-specific commands moved to `queue-status/references/` to align with the official Anthropic skill structure (progressive disclosure via `references/`). `SKILL.md` updated to read `references/{message_broker}.md`.
+
+### Notes
+
+- `deploy-status` is intentionally read-only in this release. Chaining to `deploy` or a future `rollback` skill is deferred to a later version.
+
+---
+
 ## [0.3.0] — 2026-04-24
 
 ### Added

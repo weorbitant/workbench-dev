@@ -89,6 +89,16 @@ That's enough to start using `service-status`, `service-logs`, and `queue-status
 
 These are read-only — Claude can run them automatically when the context suggests it.
 
+### Check deployments
+
+```
+/ops-suite:deploy-status                       → table per env: commit, PR, author, deployed-at, replicas
+/ops-suite:deploy-status my-api                → same but for a specific service
+/ops-suite:deploy-status my-api prod           → just one env
+```
+
+Read-only. Detects drift between envs (`IN SYNC`, `PROD BEHIND`, `PROD AHEAD`, `DIVERGED`) and shows the commit list of the drift when present.
+
 ### Work with databases
 
 ```

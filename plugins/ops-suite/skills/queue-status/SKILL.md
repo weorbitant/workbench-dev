@@ -121,7 +121,20 @@ Summary:
   Queues with 0 consumers: {count}
 ```
 
-If any DLQs have messages, automatically triage the first one:
+## Step 7 — Auto-triage DLQs with messages
 
-Use ops-suite:queue-triage with arguments: {dlq_name} {env_name}.
-Use session state from /tmp/ops-suite-session/ — do not re-ask for environment.
+For every DLQ with `messages > 0`, chain to `ops-suite:queue-triage`. Use the same env across the whole loop — read it from session state at `/tmp/ops-suite-session/`, do not re-ask.
+
+**Throughput rules:**
+
+- **0 DLQs with messages** → skip this step entirely.
+- **1–3 DLQs with messages** → invoke `ops-suite:queue-triage` for each one. Dispatch the calls in parallel (a single assistant turn with multiple Skill invocations).
+- **4 or more DLQs with messages** → do **not** auto-triage. Instead, list the candidates ordered by message count (descending) and ask the user via `AskUserQuestion`:
+  - `Triage top 3 (recommended)`
+  - `Triage all N`
+  - `Skip — I will pick manually`
+  Then act on the answer: dispatch parallel triage calls for the chosen subset, or stop.
+
+**Per-call arguments**: `{dlq_name} {env_name}`.
+
+Each triage runs as an independent subagent (sonnet) and reports back; queue-status itself does not synthesize the diagnoses — just lets each triage report and stops.
