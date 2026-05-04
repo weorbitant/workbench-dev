@@ -48,12 +48,16 @@ That's a real session. Six operations, zero context switching.
 }
 ```
 
-**2. Create your config:**
+**2. Create your config** at `~/.config/ops-suite/config.yaml` (or `$XDG_CONFIG_HOME/ops-suite/config.yaml`):
 
 ```bash
-cd /path/to/ops-suite
-cp config.example.yaml config.yaml
+mkdir -p ~/.config/ops-suite
+cp /path/to/ops-suite/config.example.yaml ~/.config/ops-suite/config.yaml
 ```
+
+> Or just run `/ops-suite:configure` and answer the wizard — it writes the file for you.
+>
+> Override the location with `OPS_SUITE_CONFIG=/some/path/config.yaml` if you need to.
 
 **3. Fill in three things** in `config.yaml`:
 
@@ -270,7 +274,7 @@ See [docs/workflows.md](docs/workflows.md) for step-by-step recipes for common s
 
 ```
 ops-suite/
-├── config.example.yaml        ← copy to config.yaml and fill in
+├── config.example.yaml        ← copy to ~/.config/ops-suite/config.yaml and fill in
 ├── commands/                   ← slash command triggers (/ops-suite:xxx)
 ├── skills/                     ← skill logic (one folder per skill)
 │   └── <skill>/
@@ -287,6 +291,9 @@ ops-suite/
 
 **"config.json not cached" warning on session start**
 → You need `js-yaml` installed: `npm i -g js-yaml`. Without it, skills still work (they read `config.yaml` directly) but lose the caching benefit.
+
+**Skills hang or return nothing after install**
+→ The plugin is loaded from `~/.claude/plugins/cache/...`, which does not contain your `config.yaml`. Make sure your config lives at `~/.config/ops-suite/config.yaml` (or set `OPS_SUITE_CONFIG`). Run `/ops-suite:configure` to generate it.
 
 **Port-forward connects but queries fail with "connection refused"**
 → Check the namespace. Some services (like PgBouncer) may run in the apps namespace, not infra. Set `namespace:` in your service config to override.
