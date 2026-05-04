@@ -11,7 +11,7 @@
       "name": "ops-suite",
       "source": "./plugins/ops-suite",
       "description": "Technology-agnostic infrastructure operations: service status, logs, deployments, database queries, and message queue management",
-      "version": "0.4.0"
+      "version": "0.4.1"
     },
     {
       "name": "refinery",

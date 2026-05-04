@@ -11,8 +11,8 @@ metadata:
 
 Check if `/tmp/ops-suite-session/config.json` exists:
 - If yes, read it (pre-parsed by session-start hook).
-- If no, read the plugin's `config.yaml`, parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
-If neither exists, tell the user to copy `config.example.yaml` to `config.yaml` and fill in their values. Stop here.
+- If no, read `${XDG_CONFIG_HOME:-$HOME/.config}/ops-suite/config.yaml` (preferred) or the plugin's `config.yaml` (legacy), parse it, and write to `/tmp/ops-suite-session/config.json` for other skills to reuse.
+If neither exists, tell the user to run `/ops-suite:configure` (or copy `config.example.yaml` to `~/.config/ops-suite/config.yaml` and fill in their values). Stop here.
 
 Extract:
 - `database` — determines which adapter to load (postgresql, mysql, mongodb)

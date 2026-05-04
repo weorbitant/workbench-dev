@@ -6,6 +6,36 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.4.1] — 2026-05-04
+
+### Fixed
+
+- **Config location** — the SessionStart hook used to look for `config.yaml` inside the plugin directory, which resolves to the cached plugin path (`~/.claude/plugins/cache/...`) when installed via `/plugin install`. That path never contains the user's config, so the cache stayed empty and skills with `metadata.model:` set (which run as subagents) silently failed to find the config and returned empty output.
+- The hook now resolves `config.yaml` from, in order:
+  1. `$OPS_SUITE_CONFIG` (explicit override)
+  2. `${XDG_CONFIG_HOME:-$HOME/.config}/ops-suite/config.yaml` (preferred, stable across reinstalls)
+  3. `${PLUGIN_ROOT}/config.yaml` (legacy, kept for backwards compatibility)
+- All skill `Step 0 — Load configuration` blocks updated to reflect the new lookup order.
+- `configure` skill now writes to `${XDG_CONFIG_HOME:-$HOME/.config}/ops-suite/config.yaml` instead of the plugin directory.
+
+### Changed
+
+- README quick-start now instructs users to place their config at `~/.config/ops-suite/config.yaml`.
+- New troubleshooting entry: "Skills hang or return nothing after install".
+
+### Migration
+
+If you had a working `config.yaml` inside the plugin directory, move it:
+
+```bash
+mkdir -p ~/.config/ops-suite
+mv /path/to/plugins/ops-suite/config.yaml ~/.config/ops-suite/config.yaml
+```
+
+Or just re-run `/ops-suite:configure`.
+
+---
+
 ## [0.4.0] — 2026-04-30
 
 ### Added
