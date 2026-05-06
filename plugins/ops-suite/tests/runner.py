@@ -66,7 +66,13 @@ def build_system_prompt(skill_content: str, config: dict) -> str:
     )
 
 
-def call_claude(system_prompt: str, user_message: str) -> str:
+def call_claude(system_prompt: str, user_message: str, dry_run: bool = False) -> str:
+    if dry_run:
+        return (
+            "I'll use kubectl to check your pods. "
+            "Let me review the pod status in the dev-cluster context using kubernetes. "
+            "Here is the pod health information. Shall I proceed? (yes/no)"
+        )
     client = anthropic.Anthropic()
     response = client.messages.create(
         model=HAIKU,
@@ -90,7 +96,7 @@ def load_dataset(skill_name: str) -> list:
     return cases
 
 
-def grade_case(case: dict, response: str, adapter_content: str) -> dict:
+def grade_case(case: dict, response: str, adapter_content: str, dry_run: bool = False) -> dict:
     from grader.rules import run_rule_check
     from grader.judge import run_judge
 
@@ -107,7 +113,10 @@ def grade_case(case: dict, response: str, adapter_content: str) -> dict:
             )
             rule_results.append({"check": behavior["check"], "passed": passed})
         elif behavior["type"] == "judge":
-            judge_result = run_judge(response=response, rubric=behavior["rubric"])
+            if dry_run:
+                judge_result = {"score": 3, "reasoning": "[dry-run] skipped real judge call"}
+            else:
+                judge_result = run_judge(response=response, rubric=behavior["rubric"])
 
     all_rules_pass = all(r["passed"] for r in rule_results)
     judge_pass = judge_result is None or judge_result["score"] >= 3
@@ -122,7 +131,7 @@ def grade_case(case: dict, response: str, adapter_content: str) -> dict:
     }
 
 
-def run_skill_eval(skill_name: str) -> dict:
+def run_skill_eval(skill_name: str, dry_run: bool = False) -> dict:
     skill_content = load_skill_content(skill_name)
     cases = load_dataset(skill_name)
     case_results = []
@@ -132,8 +141,8 @@ def run_skill_eval(skill_name: str) -> dict:
         technology = _adapter_technology(skill_name, config)
         adapter_content = load_adapter_content(skill_name, technology) if technology else ""
         system_prompt = build_system_prompt(skill_content, config)
-        response = call_claude(system_prompt, case["user_message"])
-        result = grade_case(case, response, adapter_content)
+        response = call_claude(system_prompt, case["user_message"], dry_run=dry_run)
+        result = grade_case(case, response, adapter_content, dry_run=dry_run)
         case_results.append(result)
         status = "✓" if result["passed"] else "✗"
         print(f"  {status} {result['id']}")
@@ -197,6 +206,8 @@ def main() -> None:
     group.add_argument("--all", action="store_true", help="Run evals for all skills")
     parser.add_argument("--compare", metavar="WHEN", choices=["last"],
                         help="Compare results against a previous run (use: last)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Use a fixed mock response instead of calling Claude (no API key needed)")
     args = parser.parse_args()
 
     sys.path.insert(0, str(TESTS_DIR))
@@ -204,10 +215,13 @@ def main() -> None:
     skills_to_run = available_skills() if args.all else [args.skill]
     all_results = []
 
+    if args.dry_run:
+        print("[dry-run] Using mock response — no API calls will be made.\n")
+
     for skill_name in skills_to_run:
         print(f"\n{skill_name}:")
         try:
-            result = run_skill_eval(skill_name)
+            result = run_skill_eval(skill_name, dry_run=args.dry_run)
             path = save_results(skill_name, result)
             print(f"  → saved to {path.name}")
             all_results.append(result)
