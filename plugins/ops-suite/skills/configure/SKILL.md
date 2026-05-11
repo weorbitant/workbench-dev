@@ -7,6 +7,17 @@ metadata:
   model: sonnet
 ---
 
+## UI Rules — MANDATORY
+
+**Always use `AskUserQuestion` for every selection in this wizard.** Never present choices as plain text lists.
+
+- Single-choice questions → `multiSelect: false`
+- Multi-choice questions (environments, services) → `multiSelect: true`
+- Text inputs (slugs, ports, commands) → group as a follow-up `AskUserQuestion` with an "Other" option that prompts the user to type
+- Use `preview` on options when showing side-by-side comparisons (e.g. port mappings)
+- Run auto-detection silently first; use detected values as the first/recommended option
+- Batch up to 4 independent questions per `AskUserQuestion` call to minimize round-trips
+
 ## Overview
 
 Full interactive wizard. Asks the user about **every** infrastructure component one section at a time. Auto-detection is used only to suggest defaults — every question is always asked explicitly, never skipped.
@@ -17,14 +28,9 @@ Resolve the user config directory as `${XDG_CONFIG_HOME:-$HOME/.config}/ops-suit
 
 ## Section 1 — Orchestrator
 
-Run silently:
-```bash
-kubectl config get-contexts 2>/dev/null
-```
-
 Ask:
 > "What container orchestrator do you use?"
-- `kubernetes` — kubectl + cluster contexts *(suggest if contexts were detected)*
+- `kubernetes` — kubectl + cluster contexts
 - `docker-compose` — local or remote compose files
 - `ecs` — Amazon Elastic Container Service
 - `none` — no container orchestrator
@@ -72,10 +78,7 @@ Store as `{broker}`.
 
 ### If broker = rabbitmq
 
-For **each** environment, run silently:
-```bash
-kubectl get svc -n {env.ns_infra} --context={env.context} -o name 2>/dev/null | grep -i rabbit | head -1
-```
+For **each** environment, follow the orchestrator adapter's "Detect broker service" instructions (if available) to optionally suggest a default. Then ask:
 
 Ask per environment:
 1. > "**{env_name}** — RabbitMQ service name?" (suggest detected or `rabbitmq`)
@@ -103,10 +106,7 @@ Store as `{database}`.
 
 ### If database = postgresql or mysql
 
-For **each** environment, run silently:
-```bash
-kubectl get svc -n {env.ns_infra} --context={env.context} -o name 2>/dev/null | grep -iE 'pgbouncer|postgres|mysql' | head -1
-```
+For **each** environment, follow the orchestrator adapter's "Detect database service" instructions (if available) to optionally suggest a default. Then ask:
 
 Ask per environment:
 1. > "**{env_name}** — DB proxy/service name?" (suggest detected)
@@ -159,15 +159,10 @@ Store as `{migration_command}`.
 
 ## Section 7 — Primary service
 
-Run silently:
-```bash
-kubectl get deployments -n {env[0].ns_apps} --context={env[0].context} \
-  -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null | head -4
-```
+Follow the orchestrator adapter's "Detect primary service" instructions (if available) to optionally suggest defaults. Then ask:
 
-Ask:
 > "Primary application service name? (used for health checks and log tailing after deploys)"
-- List up to 4 detected services + "I'll type it manually"
+- List up to 4 detected services (if detection ran) + "I'll type it manually"
 
 Store as `{primary_service}`.
 
