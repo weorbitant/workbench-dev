@@ -2,10 +2,9 @@
 name: deploy
 description: Deploy a merged PR or commit to an environment. TRIGGER when: chained by workflow-deploy or another skill; user explicitly invokes /deploy with a PR number, commit SHA, or ref. SKIP: interactive guided deployments (use workflow-deploy).
 allowed-tools: Bash AskUserQuestion
-metadata:
-  argument-hint: "[PR-number or ref] [environment]"
-  model: haiku
-  disable-model-invocation: "true"
+argument-hint: "[PR-number or ref] [environment]"
+model: haiku
+disable-model-invocation: true
 ---
 
 ## Step 0 — Load configuration

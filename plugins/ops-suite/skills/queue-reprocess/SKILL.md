@@ -2,10 +2,9 @@
 name: queue-reprocess
 description: Move failed messages from dead letter queues back to their main queue. Use when asked about "reprocess DLQ", "retry failed messages", "move DLQ messages", "republish dead letters". SKIP: diagnosing failures first (use queue-triage); checking counts (use queue-status).
 allowed-tools: Bash Read AskUserQuestion
-metadata:
-  argument-hint: "[queue-name] [environment]"
-  model: haiku
-  disable-model-invocation: "true"
+argument-hint: "[queue-name] [environment]"
+model: haiku
+disable-model-invocation: true
 ---
 
 ## Step 0 — Load configuration
