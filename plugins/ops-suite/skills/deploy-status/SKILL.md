@@ -2,9 +2,8 @@
 name: deploy-status
 description: Show deployment status across environments — current deployed commit, author, timestamp, PR, and drift between envs. Use when asked about "deploy status", "what is deployed", "what version is in prod", "is prod up to date", "show deployments", "current commit per env", "deployment overview", "env diff", "qué hay desplegado", "estado de los deploys". TRIGGER when: user asks "what's deployed in X", "deploy status", "is staging behind prod", "show me deploys", "last deploy of [service]", "deployment diff between envs", "qué versión hay en prod". SKIP: deploying new versions (use deploy or workflow-deploy); pod health (use service-status); logs (use service-logs).
 allowed-tools: Bash AskUserQuestion
-metadata:
-  argument-hint: "[service-name] [environment]"
-  model: haiku
+argument-hint: "[service-name] [environment]"
+model: haiku
 ---
 
 ## Step 0 — Load configuration
