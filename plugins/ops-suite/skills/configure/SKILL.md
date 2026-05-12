@@ -4,7 +4,6 @@ description: Walks through full ops-suite setup: asks about all infrastructure c
 allowed-tools: Bash AskUserQuestion Write
 metadata:
   argument-hint: ""
-  model: sonnet
 ---
 
 ## UI Rules — MANDATORY
