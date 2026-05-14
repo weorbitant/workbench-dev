@@ -1,9 +1,15 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: N/A (initial) → 1.0.0
-Added sections: Core Principles (I–V), Technology Stack, Development Workflow, Governance
-Removed sections: N/A (initial creation)
+Version change: 1.0.0 → 2.0.0 (MAJOR — complete redefinition of project purpose and principles)
+Modified principles:
+  I.  Automation-First → Plugin-First
+  II. Composability → Context-Aware Execution
+  III. Declarative Specifications Before Implementation → Report-Oriented Output (retained, renamed)
+  IV. Observability → Read Before Act (retained concept, narrowed focus)
+  V.  Idempotency and Safety → retained, extended with credential safety
+Added sections: none
+Removed sections: none (restructured)
 Templates requiring updates:
   ✅ .specify/templates/plan-template.md — reviewed; no changes needed
   ✅ .specify/templates/spec-template.md — reviewed; no changes needed
@@ -16,80 +22,93 @@ Follow-up TODOs:
 
 ## Core Principles
 
-### I. Automation-First
+### I. Plugin-First
 
-Every recurring work process — ticket definition, requirements gathering, deployment
-operations, code review, planning — MUST have an automated path via a skill, agent,
-or workflow before it is considered done. Manual-only steps are technical debt.
+Every daily work operation — ticket review, sprint analysis, service monitoring,
+database inspection, report generation — MUST be delivered as a discrete Claude Code
+skill or plugin. There are no ad-hoc scripts, no one-off commands, no manual processes
+that cannot be invoked as a skill.
 
-Automation is the product. If a process can only be executed by a human reading
-instructions, it has not been delivered.
+A capability that cannot be invoked with a single `/command` has not been delivered.
 
-### II. Composability
+### II. Context-Aware Execution
 
-Skills, agents, and workflows MUST be modular units that compose cleanly.
-A skill does one thing well. An agent orchestrates skills. A workflow sequences agents.
+Every plugin MUST detect its operating context before acting. Context includes:
+the project management system in use (Jira, Linear, GitHub Issues…), the deployment
+environment (cluster namespace, cloud provider, region), and the data store type
+(PostgreSQL, MySQL, Redis…). Plugins MUST NOT hardcode connection details or
+assume a fixed stack.
 
-- No monolithic automation scripts that mix multiple concerns.
-- Each skill MUST be independently invocable and testable in isolation.
-- Shared logic MUST be extracted into reusable primitives, not copy-pasted.
+- Context detection runs automatically at plugin startup.
+- If context cannot be determined, the plugin MUST ask — never guess silently.
+- Detected context MUST be reusable across plugins within the same session.
 
-### III. Declarative Specifications Before Implementation
+### III. Report-Oriented Output
 
-Every automated process MUST be fully specified (user scenarios, acceptance criteria,
-edge cases) before implementation begins. Specification is not overhead — it is the
-design artifact that makes automation trustworthy.
+Every plugin that gathers or analyses information MUST produce a structured,
+human-readable report as its primary output. Raw data dumps are not acceptable.
 
-- The speckit lifecycle (specify → clarify → plan → tasks → implement) is MANDATORY
-  for all non-trivial automations.
-- Shortcuts that skip spec or plan stages MUST be explicitly justified and documented.
+- Reports MUST include: summary headline, key metrics, actionable insights,
+  and a recommended next action.
+- Structured formats (Markdown tables, JSON when consumed by another plugin)
+  MUST be used consistently.
+- Insights MUST be surfaced proactively — plugins identify anomalies and risks
+  without being asked to look for them specifically.
 
-### IV. Observability
+### IV. Read Before Act
 
-Every automated operation MUST produce traceable, human-readable output. Failures MUST
-surface immediately with actionable error messages — never silent failures.
+Plugins that modify state (create tickets, trigger deployments, run migrations)
+MUST first read and summarise the current state, then require explicit confirmation
+before making any change.
 
-- Structured output (JSON or Markdown) preferred for machine-readable results.
-- All agents and workflows MUST log their intent before acting and their result after.
-- Destructive or irreversible operations MUST require explicit confirmation.
+- Read-only plugins run freely and may be auto-invoked by agents.
+- Write plugins MUST display a confirmation prompt with a summary of the change
+  and its scope before executing.
+- Destructive operations (delete, scale-to-zero, drop) MUST require a typed
+  confirmation phrase, not just a yes/no.
 
-### V. Idempotency and Safety
+### V. Credential and Secret Safety
 
-Automated operations MUST be safe to re-run. Running the same skill or workflow twice
-MUST NOT produce unintended side effects.
+Secrets, tokens, connection strings, and credentials MUST never appear in plugin
+output, reports, logs, or committed files.
 
-- Operations that modify shared state (branches, deployments, tickets) MUST check
-  current state before acting.
-- Reversibility MUST be considered at design time; rollback paths MUST be documented
-  for deployment operations.
-- Secrets and credentials MUST never appear in skill outputs, logs, or committed files.
+- All credentials MUST be read from environment variables or a local secrets file
+  listed in `.gitignore`.
+- Plugin output that includes connection details MUST redact sensitive fields.
+- If a plugin cannot find required credentials, it MUST fail with a clear message
+  explaining where to set them — never fall back to prompting for inline input.
 
 ## Technology Stack
 
-Skills are Markdown files with YAML frontmatter, executed by Claude Code via the
-`Skill` tool. Agents are Claude Code subagents dispatched via the `Agent` tool.
-Workflows are sequences of skills and agents defined in `.specify/workflows/`.
+Plugins are Claude Code skills (Markdown + YAML frontmatter). Complex operations
+are orchestrated via agents dispatched with the `Agent` tool.
 
-**Primary runtime**: Claude Code (claude-sonnet-4-6 or higher by default)
-**Skill storage**: `.claude/skills/` (project-level), `~/.claude/skills/` (user-level)
-**Workflow definitions**: `.specify/workflows/`
+**Primary runtime**: Claude Code (claude-sonnet-4-6 or higher)
+**Plugin storage**: `plugins/` (this repo), installed to `.claude/skills/` or via
+  `.claude-plugin` manifest for distribution
 **Spec artifacts**: `.specify/memory/`, `specs/`
-**Extensions**: `.specify/extensions/` (git, integrations, etc.)
+**Integrations**: Jira, GitHub, Kubernetes (`kubectl`), cloud CLIs (`gcloud`, `aws`)
+**Output format**: Markdown (human reports), JSON (machine-readable inter-plugin data)
 
-All skills MUST follow the established frontmatter schema:
-`name`, `description`, `model` (optional), and `invocation` (optional).
+All plugins MUST follow the established frontmatter schema:
+`name`, `description`, `model` (optional), `invocation` (optional),
+`disable-model-invocation: true` for destructive plugins.
 
 ## Development Workflow
 
-1. **Specify** (`/speckit-specify`) — Capture user scenarios and acceptance criteria.
-2. **Clarify** (`/speckit-clarify`) — Resolve ambiguities before design.
-3. **Plan** (`/speckit-plan`) — Design the technical approach and research dependencies.
-4. **Tasks** (`/speckit-tasks`) — Break the plan into atomic, parallelizable tasks.
-5. **Implement** (`/speckit-implement`) — Execute tasks; run skills/agents as needed.
-6. **Checklist** (`/speckit-checklist`) — Validate against acceptance criteria before merge.
+1. **Specify** (`/speckit-specify`) — Capture plugin capability and acceptance criteria.
+2. **Clarify** (`/speckit-clarify`) — Resolve integrations, context detection, and
+   output format ambiguities.
+3. **Plan** (`/speckit-plan`) — Design context detection, data fetching, and report
+   structure.
+4. **Tasks** (`/speckit-tasks`) — Break into atomic, parallelizable implementation
+   tasks.
+5. **Implement** (`/speckit-implement`) — Build the plugin.
+6. **Checklist** (`/speckit-checklist`) — Validate against acceptance criteria before
+   merge.
 
-Feature branches MUST follow the convention `feat/<name>` or `fix/<name>`.
-Direct commits to `main` are prohibited. All merges MUST go through a PR.
+Feature branches MUST follow `feat/<plugin-name>` or `fix/<plugin-name>`.
+Direct commits to `main` are prohibited. All merges go through a PR.
 
 ## Governance
 
@@ -101,7 +120,7 @@ This constitution supersedes all informal practices. Amendments require:
 
 All PRs MUST verify compliance with the five Core Principles before merge.
 Principle violations MUST be resolved, not suppressed.
-Complexity introduced beyond what Principle II (Composability) allows MUST be
-justified in the PR description.
+Any new integration (external API, cloud provider, project tool) MUST be declared
+in the Technology Stack section before a plugin depending on it is merged.
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-14 | **Last Amended**: 2026-05-14
+**Version**: 2.0.0 | **Ratified**: 2026-05-14 | **Last Amended**: 2026-05-14
